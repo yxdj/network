@@ -1,6 +1,6 @@
 {
     "name": "yxdj/network",
-    "description": "",
+    "description": "use it with network",
     "keywords": ["yxdj", "network","http"],
     "type": "network",
     "license": "BSD-3-Clause",
