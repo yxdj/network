@@ -1,4 +1,4 @@
-Twitter Bootstrap Extension for Yii 2
+yxdj/network for php
 =====================================
 
 This is the Twitter Bootstrap extension for Yii 2. It encapsulates Bootstrap components
