@@ -1,32 +1,24 @@
 yxdj/network for php
 =====================================
 
-This is the Twitter Bootstrap extension for Yii 2. It encapsulates Bootstrap components
-and plugins in terms of Yii widgets, and thus makes using Bootstrap components/plugins
-in Yii applications extremely easy. For example, the following
-single line of code in a view file would render a Bootstrap Progress plugin:
+get,post,cookie,file都支持数组请求，除了file都支持深维度数据（file本身没必要）
+include:hostToIp<fun>,
+HTTP控制类
+$code=$http->getUrl()/postUrl()/headUrl();
+if($code=='200'){
+    $this->request/response/content/code;
+    $this->getCharset()/getKeyword()/getDebug()
+}
 
 ```php
-<?= yii\bootstrap\Progress::widget(['percent' => 60, 'label' => 'test']) ?>
+use yxdj\network\Http;
+
+$http = new Http();
+
+$url = 'http://php.net';
+if ($http->getUrl($url) == 200) {
+    echo $http->getKeyword();
+} else {
+    echo $http->getDebug();
+}
 ```
-
-
-Installation
-------------
-
-The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
-
-Either run
-
-```
-php composer.phar require --prefer-dist yiisoft/yii2-bootstrap "*"
-```
-
-or add
-
-```
-"yiisoft/yii2-bootstrap": "*"
-```
-
-to the require section of your `composer.json` file.
-
