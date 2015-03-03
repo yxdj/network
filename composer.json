@@ -1,6 +1,6 @@
 {
     "name": "yxdj/network",
-    "description": "http-tool:request api curl",
+    "description": "http-tool:debug api curl",
     "keywords": ["yxdj", "network","http"],
     "type": "network",
     "license": "BSD-3-Clause",

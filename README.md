@@ -1,5 +1,5 @@
 yxdj/network
-http-tool:request api curl
+http-tool:debug api curl
 HTTP工具包：请求调试，API客户端，网页采集
 =====================================
 
