@@ -125,12 +125,20 @@ $this->img()
 
 ##四、使用示例:
 
-###简单请求
+###直接请求
 
 ```php
 use yxdj\network\Http:
-$http = new Http();
-echo Api::http([
+$http = Api::getHttp();
+echo $http->get('http://php.net')->getDebug();
+```
+
+
+
+```php
+use yxdj\network\Http:
+$http = Api::getHttp();
+echo $http->request([
     'url' => 'http://api.yii.app.com/login',
     'method' =>'POST',
     'get' => ['get'=>'aaaa'],
@@ -145,16 +153,6 @@ echo Api::http([
 
 ]);
 ```
-
-
-**自定义：TestApi**
-
-```php
-use yxdj\network\api\TestApi;
-TestApi::text();
-TestApi::debug();
-```
-
 
 
 
