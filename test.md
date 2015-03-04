@@ -21,6 +21,11 @@
 
 
 ##二、安装/删除：
+
+> 此工具要求php5.3以上，不需要核心以外的扩展，下文使用说明是基于5.4的语法操作（主要是数组表示）
+> 此工具是作为一个composer包发布，但是核心文件Http.php并不对且它文件依赖，可以将其独立出来使用
+
+
 > 安装：composer require yxdj/network  
 > 删除：composer remove yxdj/network  
 
