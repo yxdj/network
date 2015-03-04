@@ -1,4 +1,4 @@
-        ```php
+```php
         $http->request([
             //必需参数
             'url'=>'http://example.com/path/to/test.php',
@@ -21,7 +21,7 @@
             'atimeout' => 15,  //访问超时（s）
             'request' =>'',    //要发送的请求，此参数设置后基础参数中的所有设定失效
         ]);
-        ```
+```
         重要：
             get/post/head这3个方法是对rquest方法的简化，
             这3个方法将参数整理成数组再去调用request
