@@ -123,7 +123,42 @@ $this->img()
 ```
 
 
-#### 2.3 封装API
+##四、使用示例:
+
+###发送请求
+
+```php
+use yxdj\network\Http:
+$http = new Http();
+echo Api::http([
+    'url' => 'http://api.yii.app.com/login',
+    'method' =>'POST',
+    'get' => ['get'=>'aaaa'],
+    'post' => ['post'=>'55555'],
+    'cookie' => ['cookie'=>'555555'],
+    'file' => [
+                ['name'=>'file1','value'=>'33333'],
+                ['name'=>'file2', 'value'=>'4444'],
+                ['name'=>'file2', 'value'=>'5555'],
+              ],
+    //'request2' => $request,
+
+]);
+```
+
+
+**自定义：TestApi**
+
+```php
+use yxdj\network\api\TestApi;
+TestApi::text();
+TestApi::debug();
+```
+
+
+
+
+###封装API
 
 >  $http已经能简单的发送参数，并能方便的获取响应  
 >  但在应用程序中使用它时，  
@@ -131,7 +166,7 @@ $this->img()
 >  在请求后还需对响应结果进行判断，解析，处理成最后需要的格式  
 >  可以将这个过程封装成一个API，以便更简便的调用  
 
-** 2.3.1 API定义**
+**2.3.1 API定义**
 ```php
 namespace yxdj\network\api;
 
@@ -162,43 +197,21 @@ class TestApi extends Api
 }
 ```
 
-** 2.3.2 API调用**
+**2.3.2 API调用**
 ```php
 use yxdj\network\api\TestApi;
 $status = TestApi::login(['usename'=>'xxx','passowrd'=>'xxx']);
 ```
 
-##四、使用示例:
-
-**发送请求**
-
-```php
-use yxdj\network\Http:
-$http = new Http();
-echo Api::http([
-    'url' => 'http://api.yii.app.com/login',
-    'method' =>'POST',
-    'get' => ['get'=>'aaaa'],
-    'post' => ['post'=>'55555'],
-    'cookie' => ['cookie'=>'555555'],
-    'file' => [
-                ['name'=>'file1','value'=>'33333'],
-                ['name'=>'file2', 'value'=>'4444'],
-                ['name'=>'file2', 'value'=>'5555'],
-              ],
-    //'request2' => $request,
-
-]);
-```
 
 
-**自定义：TestApi**
 
-```php
-use yxdj\network\api\TestApi;
-TestApi::text();
-TestApi::debug();
-```
+
+
+
+
+
+
 
 您如果对此工具有兴趣或疑问，欢迎与我联系。
 ---------------------------------------
