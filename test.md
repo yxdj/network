@@ -108,3 +108,36 @@ $http->getKeyword()
 //响应的编码（如果能解析到）
 $http->getCharset() 
 ```
+
+##四、使用示例:
+
+**发送请求**
+
+```php
+use yxdj\network\Http:
+$http = new Http();
+echo Api::http([
+    'url' => 'http://api.yii.app.com/login',
+    'method' =>'POST',
+    'get' => ['get'=>'aaaa'],
+    'post' => ['post'=>'55555'],
+    'cookie' => ['cookie'=>'555555'],
+    'file' => [
+                ['name'=>'file1','value'=>'33333'],
+                ['name'=>'file2', 'value'=>'4444'],
+                ['name'=>'file2', 'value'=>'5555'],
+              ],
+    //'request2' => $request,
+
+]);
+```
+
+
+**自定义：TestApi**
+
+```php
+use yxdj\network\api\TestApi;
+TestApi::text();
+TestApi::debug();
+```
+
