@@ -81,4 +81,30 @@ $http->request([
 >     request的具体处理过程：  
 >     1.清除$http中上次请求的内容，把request得到的参数写入$http；  
 >     2.发送请求并获取响应，此过程会生成一些参数并写入$http;  
->     3.然后返回的$http就可以做如下获取响应的操作了  
+>     3.然后返回的$http就可以做获取响应的操作了  
+
+
+获取响应：
+---------------------------------------------
+```php
+//debug信息，包括请求头，响应头，及具体的解析过程
+$http->getDebug()
+
+//响应码，如果是大于或等于900的响应码将是请求类自定义的
+$http->getCode()
+
+//请求头信息
+$http->getRequest()
+
+//响应头信息
+$http->getResponse()
+
+//响应主体
+$http->getContent()
+
+//html关键字（如果能解析到）
+$http->getKeyword()
+
+//响应的编码（如果能解析到）
+$http->getCharset() 
+```
