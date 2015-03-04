@@ -40,7 +40,7 @@ HTTP工具包：请求调试，API客户端，网页采集
 
 ###2.$http的操作:
 
-####发送请求：
+#### 2.1 发送请求：
 
 
 ```php
@@ -91,7 +91,7 @@ $http->request([
 > 3. 重回的$http可继续做获取响应操作  
 
 
-####获取响应：
+#### 2.2 获取响应：
 
 ```php
 //debug信息，包括请求头，响应头，及具体的解析过程
@@ -123,7 +123,7 @@ $this->img()
 ```
 
 
-####封装API
+#### 2.3 封装API
 
 >  $http已经能简单的发送参数，并能方便的获取响应  
 >  但在应用程序中使用它时，  
@@ -131,7 +131,7 @@ $this->img()
 >  在请求后还需对响应结果进行判断，解析，处理成最后需要的格式  
 >  可以将这个过程封装成一个API，以便更简便的调用  
 
-**API定义**
+** 2.3.1 API定义**
 ```php
 namespace yxdj\network\api;
 
@@ -162,7 +162,7 @@ class TestApi extends Api
 }
 ```
 
-**API调用**
+** 2.3.2 API调用**
 ```php
 use yxdj\network\api\TestApi;
 $status = TestApi::login(['usename'=>'xxx','passowrd'=>'xxx']);
