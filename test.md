@@ -44,9 +44,16 @@ HTTP工具包：请求调试，API客户端，网页采集
 -----------------------------------
 
 ```php
-$http->get($url,$get=[],$cookie=[]);//GET请求
-$http->head($url,$get=[],$cookie=[]);//HEAD请求
-$http->post($url,$post=[],$cookie=[],$file=[]);//POST请求
+//GET请求
+$http->get(string $url[,array $get[,array $cookie]]);
+
+//HEAD请求
+$http->head(string $url[,array $get[,array $cookie]]);
+
+//POST请求
+$http->post(string $url[,array $get[,array $cookie[,array $file]]]);
+
+//自定义请求
 $http->request([
     //必需参数
     'url'=>'http://example.com/path/to/test.php',
@@ -73,21 +80,18 @@ $http->request([
 ```
 
 > 注意：  
->     上述$url是必需的  
->     $get,$cookie,$post是字符串名值对数组，可以是多维的  
+>     上述url参数是必需的，其它可选  
+>     $get,$cookie,$post是名值对数组，可以是多维的  
 >     $file，示例：['myfile'=>['name'=>'文件名字','value'=>'文件内容'],...]  
 >     php服务端可以通过$_FILES['myfile']获取上述文件  
 
 
 > 重要：  
->     get/post/head这3个方法是对rquest方法的简化，  
->     这3个方法将参数整理成数组再去调用request  
->     这3个方法的返回即是request的返回  
->     而request的返回的仍是当前对象$http,但它的内容已有变化了。  
+>     get/post/head这3个方法是对rquest方法的简化，它们的返回仍是对象$http,但其中已有响应结果。    
 >     request的具体处理过程：  
->     1.清除$http中上次请求的内容，把request得到的参数写入$http；  
->     2.发送请求并获取响应，此过程会生成一些参数并写入$http;  
->     3.然后返回的$http就可以做获取响应的操作了  
+>     1. 清除$http中上次的请求内容；  
+>     2. 重新写入请求配置信息和获取的响应;  
+>     3. 重回的$http可继续做获取响应操作  
 
 
 获取响应：
