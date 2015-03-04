@@ -30,8 +30,7 @@
 ###1.$http的获取:
 
 > 方法一：$http = new \yxdj\network\Http();  
-> 方法二：$http = \yxdj\network\Api::gethttp();  
-> 如果要多次使用$http对象，不需每次都实例它，方法二是对方法一的调用，并保持单例  
+> 方法二：$http = \yxdj\network\Api::gethttp();  //对方法一的调用，并保持单例 
 
 ###2.$http的操作:
 
