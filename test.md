@@ -27,7 +27,7 @@
 
 
 ##三、使用说明($http表示请求对象)
-###1.获取$http:
+###1.$http的获取:
 
 > 方法一：$http = new \yxdj\network\Http();  
 > 方法二：$http = \yxdj\network\Api::gethttp();  
