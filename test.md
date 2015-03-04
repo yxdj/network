@@ -36,25 +36,12 @@
 ###2.$http的方法:
 
 发送请求：
-
+-----------------------------------
 
 ```php
 $http->get($url,$get=[],$cookie=[]);//GET请求
 $http->head($url,$get=[],$cookie=[]);//HEAD请求
 $http->post($url,$post=[],$cookie=[],$file=[]);//POST请求
-```
-
-> 注意：  
->     上述$url是必需的  
->     $get,$cookie,$post是字符串名值对数组，可以是多维的  
->     $file，示例：['myfile'=>['name'=>'文件名字','value'=>'文件内容'],...]  
->     php服务端可以通过$_FILES['myfile']获取上述文件  
-
-
-
-
-
-```php
 $http->request([
     //必需参数
     'url'=>'http://example.com/path/to/test.php',
@@ -78,6 +65,13 @@ $http->request([
     'request' =>'',    //要发送的请求，此参数设置后基础参数中的所有设定失效
 ]);
 ```
+
+> 注意：  
+>     上述$url是必需的  
+>     $get,$cookie,$post是字符串名值对数组，可以是多维的  
+>     $file，示例：['myfile'=>['name'=>'文件名字','value'=>'文件内容'],...]  
+>     php服务端可以通过$_FILES['myfile']获取上述文件  
+
 
 > 重要：  
 >     get/post/head这3个方法是对rquest方法的简化，  
