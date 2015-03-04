@@ -35,8 +35,8 @@ HTTP工具包：请求调试，API客户端，网页采集
 ##三、使用说明($http表示请求对象)
 ###1.$http的获取:
 
-> 方法一：$http = new \yxdj\network\Http();  
-> 方法二：$http = \yxdj\network\Api::gethttp();  //对方法一的调用，并保持单例 
+> 方法一：`$http = new \yxdj\network\Http();`  
+> 方法二：`$http = \yxdj\network\Api::gethttp();  //对方法一的调用，并保持单例`
 
 ###2.$http的操作:
 
@@ -80,18 +80,15 @@ $http->request([
 ```
 
 > 注意：  
->     上述url参数是必需的，其它可选  
->     $get,$cookie,$post是名值对数组，可以是多维的  
->     $file，示例：['myfile'=>['name'=>'文件名字','value'=>'文件内容'],...]  
->     php服务端可以通过$_FILES['myfile']获取上述文件  
-
-
-> 重要：  
->     get/post/head这3个方法是对rquest方法的简化，它们的返回仍是对象$http,但其中已有响应结果。    
->     request的具体处理过程：  
->     1. 清除$http中上次的请求内容；  
->     2. 重新写入请求配置信息和获取的响应;  
->     3. 重回的$http可继续做获取响应操作  
+> 上述url参数是必需的，其它可选  
+> $get,$cookie,$post是名值对数组，可以是多维的  
+> $file，示例：['myfile'=>['name'=>'文件名字','value'=>'文件内容'],...]  
+> php服务端可以通过$_FILES['myfile']获取上述文件   
+> get/post/head这3个方法是对rquest方法的简化，它们的返回仍是对象$http,但其中已有响应结果。    
+> request的具体处理过程：  
+> 1. 清除$http中上次的请求内容；  
+> 2. 重新写入请求配置信息和获取的响应;  
+> 3. 重回的$http可继续做获取响应操作  
 
 
 ####获取响应：
@@ -128,12 +125,48 @@ $this->img()
 
 ####封装API
 
->  $http已经将参数非常简单的做请求发送，并能方便的获取响应  
+>  $http已经能简单的发送参数，并能方便的获取响应  
 >  但在应用程序中使用它时，  
 >  往往还需在请求前对参数过滤分析，调整为可供发送的格式  
 >  在请求后还需对响应结果进行判断，解析，处理成最后需要的格式  
 >  可以将这个过程封装成一个API，以便更简便的调用  
 
+**API定义**
+```php
+namespace yxdj\network\api;
+
+use yxdj\network\Api;
+
+class TestApi extends Api
+{
+    public static function login($data=[])
+    {
+        //验证，取值
+        if (!isset($data['username'], $data['password'])) {
+            return false;
+        }
+        $username = $data['username'];
+        $password = $data['password'];
+        $rememberMe = empty($data['rememberMe']) ? 0 : 3600 * 24 * 30;
+        
+        //找出用户
+        $user= User::findByUsername($username);
+        
+        //比对密码，如果登录成功将重置会话
+        if ($user && $user->validatePassword($password)) {
+            return Yii::$app->user->login($user, $rememberMe);
+        } else {
+            return false;
+        }
+    }
+}
+```
+
+**API调用**
+```php
+use yxdj\network\api\TestApi;
+$status = TestApi::login(['usename'=>'xxx','passowrd'=>'xxx']);
+```
 
 ##四、使用示例:
 
