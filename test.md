@@ -29,13 +29,13 @@ HTML关键字,编码，链接的抓取
 ##三、使用说明($http表示请求对象)
 ###1.获取$http请求对象:
 
-    方法一：$http = new \yxdj\network\Http();
-    方法二：$http = \yxdj\network\Api::gethttp();
-    --如果要多次使用$http对象，不需每次都实例它，方法二是对方法一的调用，并保持单例
+> 方法一：$http = new \yxdj\network\Http();
+方法二：$http = \yxdj\network\Api::gethttp();
+--如果要多次使用$http对象，不需每次都实例它，方法二是对方法一的调用，并保持单例
 
 ###2.$http对象的方法:
 
-    发送请求：
+发送请求：
 
 
 ```php
