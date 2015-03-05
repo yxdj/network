@@ -145,7 +145,8 @@ echo $http->getCharset();
 
 ###自定义请求
 ```php
-//server
+//server: http://test/test.php
+<?php
 print_r($_GET);
 
 print_r($_POST);
