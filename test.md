@@ -45,13 +45,13 @@ HTTP工具包：请求调试，API客户端，网页采集
 
 ```php
 //GET请求
-$http->get(string $url[,array $get[,array $cookie]]);
+$http->get(string $url[, array $get[, array $cookie]]);
 
 //HEAD请求
-$http->head(string $url[,array $get[,array $cookie]]);
+$http->head(string $url[, array $get[, array $cookie]]);
 
 //POST请求
-$http->post(string $url[,array $get[,array $cookie[,array $file]]]);
+$http->post(string $url[, array $get[, array $cookie[, array $file]]]);
 
 //自定义请求
 $http->request([
@@ -95,7 +95,9 @@ $http->request([
 
 ```php
 //debug信息，包括请求头，响应头，及具体的解析过程
-$http->getDebug()
+//$content表示是否输出响应体
+//$direct表示是否直接输出信息，默认在web模式下格式化
+$http->getDebug([$content=false[, $direct=false]])
 
 //响应码，如果是大于或等于900的响应码将是请求类自定义的
 $http->getCode()
@@ -158,7 +160,7 @@ print_r($_FILES);
 //client
 $http = Api::getHttp()->request([
     'method' => 'POST',
-    'url' => 'http://yii.app.com/test',
+    'url' => 'http://test/test.php',
     'get' => ['get1'=>'param2', 'get2'=>['a'=>'param2a','b'=>'param2b']],
     'post' => ['post1'=>'param2', 'post2'=>['a'=>'param2a','b'=>'param2b']],
     'cookie' => ['cookie1'=>'param2', 'cookie2'=>['a'=>'param2a','b'=>'param2b']],
@@ -168,60 +170,60 @@ $http = Api::getHttp()->request([
         'file2[b]' => ['name'=>'bbb.yyy','value'=>'yyyyyy'],
     ],
 ]);
-echo $http->getDebug();
+echo $http->getDebug(true);
 
 /*
 (output)
 (request)
-POST /test?get1=param2&get2%5Ba%5D=param2a&get2%5Bb%5D=param2b HTTP/1.1
-Host: yii.app.com
+POST /test.php?get1=param2&get2%5Ba%5D=param2a&get2%5Bb%5D=param2b HTTP/1.1
+Host: test
 User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:33.0) Gecko/20100101 Firefox/33.0
 Connection: Close
-Content-Type: multipart/form-data; boundary=yxdj1933971410
-Content-Length: 983
+Content-Type: multipart/form-data; boundary=yxdj274972258
+Content-Length: 976
 Cookie: cookie1=param2; cookie2%5Ba%5D=param2a; cookie2%5Bb%5D=param2b
 
---yxdj1933971410
+--yxdj274972258
 Content-Disposition: form-data; name="post1"
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 param2
---yxdj1933971410
+--yxdj274972258
 Content-Disposition: form-data; name="post2[a]"
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 param2a
---yxdj1933971410
+--yxdj274972258
 Content-Disposition: form-data; name="post2[b]"
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 param2b
---yxdj1933971410
+--yxdj274972258
 Content-Disposition: form-data; name="file1"; filename="111.txt"
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: binary
 
 123456
---yxdj1933971410
+--yxdj274972258
 Content-Disposition: form-data; name="file2[a]"; filename="aaa.xxx"
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: binary
 
 xxxxxx
---yxdj1933971410
+--yxdj274972258
 Content-Disposition: form-data; name="file2[b]"; filename="bbb.yyy"
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: binary
 
 yyyyyy
---yxdj1933971410--
+--yxdj274972258--
 
 (response)
 HTTP/1.1 200 OK
-Date: Thu, 05 Mar 2015 07:31:29 GMT
+Date: Thu, 05 Mar 2015 07:43:07 GMT
 Server: Apache/2.4.9 (Win64) PHP/5.5.12
 X-Powered-By: PHP/5.5.12
 Content-Length: 1393
@@ -266,7 +268,7 @@ Array
         (
             [name] => 111.txt
             [type] => application/octet-stream
-            [tmp_name] => D:\WAMP\wamp\tmp\phpBA47.tmp
+            [tmp_name] => D:\WAMP\wamp\tmp\php6099.tmp
             [error] => 0
             [size] => 6
         )
@@ -287,8 +289,8 @@ Array
 
             [tmp_name] => Array
                 (
-                    [a] => D:\WAMP\wamp\tmp\phpBA48.tmp
-                    [b] => D:\WAMP\wamp\tmp\phpBA49.tmp
+                    [a] => D:\WAMP\wamp\tmp\php609A.tmp
+                    [b] => D:\WAMP\wamp\tmp\php609B.tmp
                 )
 
             [error] => Array
@@ -310,16 +312,15 @@ Array
 
 (recode)
 resetRequest: ok                                            |0s
-parseUrl: ok(http://yii.app.com/test)                       |0s
-parseDomain: ok(127.0.0.1)                                  |0.01s
+parseUrl: ok(http://test/test.php)                          |0s
+parseDomain: ok(127.0.0.1)                                  |0s
 setRequest: ok                                              |0s
-connect: ok                                                 |0s
+connect: ok                                                 |0.01s
 writeRequest: ok                                            |0s
-readResponse: code: 200                                     |0.04s
+readResponse: code: 200                                     |0s
 readContent: ok                                             |0s
 close: ok                                                   |0s
-over(200): 2015-03-05 15:31:29->2015-03-05 15:31:29         |0.05s
-
+over(200): 2015-03-05 15:43:07->2015-03-05 15:43:07         |0.01s
 
 */
 ```
