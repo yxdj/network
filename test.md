@@ -338,39 +338,84 @@ over(200): 2015-03-05 15:43:07->2015-03-05 15:43:07         |0.01s
 
 **2.3.1 API定义**
 ```php
+//server:http://test/login.php
+<?php
+
+$username = !empty($_POST['username']) && is_string($_POST['username'])?$_POST['username']:'';
+$password = !empty($_POST['password']) && is_string($_POST['password'])?$_POST['password']:'';
+
+
+if ($user = findUser($username, $password)) {
+    $result = ['status' => 'ok', 'data' => $user];
+} else {
+    $result = ['status' => 'ng', 'error' => 'usernaem or password error!'];
+}
+
+echo json_encode($result);
+
+
+function findUser($username, $password){
+    $users =[
+                ['username'=>'test','password'=>md5('test_pwd'),'info'=>'test login success!'],
+                ['username'=>'yxdj','password'=>md5('yxdj_pwd'),'info'=>'yxdj login success!'],
+            ];
+            
+    $find = null;
+    foreach ($users as $user) {
+        if ($user['username'] == $username) {
+            $find = $user;
+            break;
+        }
+    }
+    
+    if ($find && $find['password'] == $password) {
+        return $find;
+    } else {
+        return null;
+    }
+
+}
+```
+
+
+```php
+//client
 namespace yxdj\network\api;
 
 use yxdj\network\Api;
 
 class TestApi extends Api
 {
-    public static function login($data=[])
+    public static function login($data)
     {
-        //验证，取值
-        if (!isset($data['username'], $data['password'])) {
-            return false;
+        $url = 'http://test/login.php';
+        $username = isset($data['username']) ? $data['username'] : '';
+        $password = isset($data['password']) ? $data['password'] : '';
+        $user = ['username' => $username, 'password' => md5($password)];
+        $content = Api::getHttp()->post($url, $user)->getContent();
+        $result = json_decode($content, true);
+        if (isset($result['status'])) {
+            if ($result['status'] == 'ok') {
+                return $result['data']['info'];
+            } elseif ($result['status'] == 'ng') {
+                return $result['error'];
+            }
         }
-        $username = $data['username'];
-        $password = $data['password'];
-        $rememberMe = empty($data['rememberMe']) ? 0 : 3600 * 24 * 30;
         
-        //找出用户
-        $user= User::findByUsername($username);
-        
-        //比对密码，如果登录成功将重置会话
-        if ($user && $user->validatePassword($password)) {
-            return Yii::$app->user->login($user, $rememberMe);
-        } else {
-            return false;
-        }
+        return 'unknow error!';
     }
 }
 ```
 
-**2.3.2 API调用**
+**TestApi::login调用**
 ```php
 use yxdj\network\api\TestApi;
-$status = TestApi::login(['usename'=>'xxx','passowrd'=>'xxx']);
+
+//(output)yxdj login success!
+echo TestApi::login(['username'=>'yxdj', 'password'=>'yxdj_pwd']);
+
+//(output)usernaem or password error!
+echo TestApi::login(['username'=>'yxdj', 'password'=>'xxx']);
 ```
 
 
