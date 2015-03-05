@@ -120,38 +120,42 @@ $this->a()
 
 //响应体中img标签的链接（如果能解析到）
 $this->img()
+
+//是否请求超时
+$this->isTimeout()
 ```
 
 
 ##四、使用示例:
 
-###直接请求
+###GET请求
 
 ```php
-use yxdj\network\Http:
-$http = Api::getHttp();
-echo $http->get('http://php.net')->getDebug();
+$http = Api::getHttp()->get('http://php.net');
+
+//(output)PHP: Hypertext Preprocessor
+echo $http->getKeyword();
+
+//(output)utf-8
+echo $http->getCharset();
 ```
 
 
-
+###自定义请求
 ```php
-use yxdj\network\Http:
-$http = Api::getHttp();
-echo $http->request([
-    'url' => 'http://api.yii.app.com/login',
-    'method' =>'POST',
-    'get' => ['get'=>'aaaa'],
-    'post' => ['post'=>'55555'],
-    'cookie' => ['cookie'=>'555555'],
+$http = Api::getHttp()->request([
+    'method' => 'POST',
+    'url' => 'http://yii.app.com/test',
+    'get' => ['get1'=>'param2', 'get2'=>['a'=>'param2a','b'=>'param2b']],
+    'post' => ['post1'=>'param2', 'post2'=>['a'=>'param2a','b'=>'param2b']],
+    'cookie' => ['cookie1'=>'param2', 'cookie2'=>['a'=>'param2a','b'=>'param2b']],
     'file' => [
-                ['name'=>'file1','value'=>'33333'],
-                ['name'=>'file2', 'value'=>'4444'],
-                ['name'=>'file2', 'value'=>'5555'],
-              ],
-    //'request2' => $request,
-
+        'file1' => ['name'=>'111.txt','value'=>'123456'],
+        'file2[a]' => ['name'=>'aaa.xxx','value'=>'xxxxxx'],
+        'file2[b]' => ['name'=>'bbb.yyy','value'=>'yyyyyy'],
+    ],
 ]);
+echo $http->getDebug();
 ```
 
 
