@@ -7,53 +7,63 @@
 
 namespace yxdj\network;
 
-/*
-$request=
-<<<http
-GET /logout HTTP/1.1
-Host: api.yii.app.com
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:33.0) Gecko/20100101 Firefox/33.0
-Connection: Close
-
-
-http;
-
-echo Api::http([
-    'url' => 'http://api.yii.app.com/login',
-    'method' =>'POST',
-    'get' => ['get'=>'aaaa'],
-    'post' => ['post'=>'55555'],
-    'cookie' => ['cookie'=>'555555'],
-    'file' => [
-                ['name'=>'file1','value'=>'33333'],
-                ['name'=>'file2', 'value'=>'4444'],
-                ['name'=>'file2', 'value'=>'5555'],
-              ],
-    //'request2' => $request,
-
-]);
-*/
 /**
-  *
-  * code
-  * 自定义
-  * 准备：1**
-  * 正常：200，未完善2**
-  * 跳转：301，302
-  * 请求异常：4**
-  * 服务端异常：5**
-  *
-  * 自定义:
-  * 开始     900
-  * 重置参数 901
-  * 解析URL  902
-  * 解析域名 903    
-  * 设定请求 904     
-  * 建立连接 905
-  * 写入请求 906
-  * 读取头部 907
-  *
-  */
+ * ```php
+ * //GET请求
+ * $http->get(string $url[, array $get[, array $cookie]]);
+ * 
+ * //HEAD请求
+ * $http->head(string $url[, array $get[, array $cookie]]);
+ * 
+ * //POST请求
+ * $http->post(string $url[, array $get[, array $cookie[, array $file]]]);
+ * 
+ * //自定义请求
+ * $http->request([
+ *     //必需参数
+ *     'url'=>'http://example.com/path/to/test.php',
+ * 
+ *     //基础参数（可选）
+ *     'method' => 'POST',
+ *     'row' => ['Accept-Encoding'=>'gzip, deflate',...],    
+ *     'get' => ['get_name'=>'get_value',...],
+ *     'post' => ['post_name'=>'post_value',...],
+ *     'cookie' => ['cookie_name'=>'cookie_value',...],    
+ *     'file' => [
+ *                 'file_name'=>['name'=>'filename','value'=>'filevalue']
+ *                 ...
+ *               ],
+ *     
+ *     //高级参数（可选）
+ *     'ip' => [],        //访问域名所对应主机的ip,数组表示多ip,可随机发送，设置将省去DNS解析时间
+ *     'allow'=>[],       //可允许的响应码，为空表示所有,返回一个不允许的响应码会抛出一个可捕获的异常
+ *     'jump'=>-1,        //302,301响应码跳转几次，-1表示不跳转
+ *     'ctimeout' => 15,  //连接超时（s）
+ *     'atimeout' => 15,  //访问超时（s）
+ *     'request' =>'',    //要发送的请求，此参数设置后基础参数中的所有设定失效
+ * ]);
+ * ```
+ * 
+ *
+ * code
+ * 自定义
+ * 准备：1**
+ * 正常：200，未完善2**
+ * 跳转：301，302
+ * 请求异常：4**
+ * 服务端异常：5**
+ *
+ * 自定义:
+ * 开始     900
+ * 重置参数 901
+ * 解析URL  902
+ * 解析域名 903    
+ * 设定请求 904     
+ * 建立连接 905
+ * 写入请求 906
+ * 读取头部 907
+ *
+ */
 class Http
 {
 
