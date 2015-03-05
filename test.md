@@ -156,6 +156,161 @@ $http = Api::getHttp()->request([
     ],
 ]);
 echo $http->getDebug();
+
+/*
+(output)
+(request)
+POST /test?get1=param2&get2%5Ba%5D=param2a&get2%5Bb%5D=param2b HTTP/1.1
+Host: yii.app.com
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:33.0) Gecko/20100101 Firefox/33.0
+Connection: Close
+Content-Type: multipart/form-data; boundary=yxdj651159506
+Content-Length: 976
+Cookie: cookie1=param2; cookie2%5Ba%5D=param2a; cookie2%5Bb%5D=param2b
+
+--yxdj651159506
+Content-Disposition: form-data; name="post1"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+param2
+--yxdj651159506
+Content-Disposition: form-data; name="post2[a]"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+param2a
+--yxdj651159506
+Content-Disposition: form-data; name="post2[b]"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+param2b
+--yxdj651159506
+Content-Disposition: form-data; name="file1"; filename="111.txt"
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: binary
+
+123456
+--yxdj651159506
+Content-Disposition: form-data; name="file2[a]"; filename="aaa.xxx"
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: binary
+
+xxxxxx
+--yxdj651159506
+Content-Disposition: form-data; name="file2[b]"; filename="bbb.yyy"
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: binary
+
+yyyyyy
+--yxdj651159506--
+
+(response)
+HTTP/1.1 200 OK
+Date: Thu, 05 Mar 2015 06:35:52 GMT
+Server: Apache/2.4.9 (Win64) PHP/5.5.12
+X-Powered-By: PHP/5.5.12
+Content-Length: 1411
+Connection: close
+Content-Type: text/html
+
+
+(content)
+Array
+(
+    [get1] => param2
+    [get2] => Array
+        (
+            [a] => param2a
+            [b] => param2b
+        )
+
+    [page] => 123
+)
+Array
+(
+    [post1] => param2
+    [post2] => Array
+        (
+            [a] => param2a
+            [b] => param2b
+        )
+
+)
+Array
+(
+    [cookie1] => param2
+    [cookie2] => Array
+        (
+            [a] => param2a
+            [b] => param2b
+        )
+
+)
+Array
+(
+    [file1] => Array
+        (
+            [name] => 111.txt
+            [type] => application/octet-stream
+            [tmp_name] => D:\WAMP\wamp\tmp\phpD0F7.tmp
+            [error] => 0
+            [size] => 6
+        )
+
+    [file2] => Array
+        (
+            [name] => Array
+                (
+                    [a] => aaa.xxx
+                    [b] => bbb.yyy
+                )
+
+            [type] => Array
+                (
+                    [a] => application/octet-stream
+                    [b] => application/octet-stream
+                )
+
+            [tmp_name] => Array
+                (
+                    [a] => D:\WAMP\wamp\tmp\phpD0F8.tmp
+                    [b] => D:\WAMP\wamp\tmp\phpD0F9.tmp
+                )
+
+            [error] => Array
+                (
+                    [a] => 0
+                    [b] => 0
+                )
+
+            [size] => Array
+                (
+                    [a] => 6
+                    [b] => 6
+                )
+
+        )
+
+)
+
+
+(recode)
+resetRequest: ok                                            |0s
+parseUrl: ok(http://yii.app.com/test)                       |0s
+parseDomain: ok(127.0.0.1)                                  |0s
+setRequest: ok                                              |0s
+connect: ok                                                 |0.001s
+writeRequest: ok                                            |0s
+readResponse: code: 200                                     |0.053s
+readContent: ok                                             |0s
+close: ok                                                   |0s
+over(200): 2015-03-05 14:35:52->2015-03-05 14:35:52         |0.054s
+
+
+
+*/
 ```
 
 
