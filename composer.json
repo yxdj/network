@@ -2,8 +2,8 @@
     "name": "yxdj/network",
     "description": "http-tool: debug,api,curl",
     "keywords": ["yxdj", "network","http"],
-    "type": "network",
-    "license": "BSD-3-Clause",
+    "type": "library",
+    "license": "MIT",
     "authors": [
         {
             "name": "xuyuan",
@@ -16,11 +16,6 @@
     "autoload": {
         "psr-4": {
             "yxdj\\network\\": ""
-        }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.0.x-dev"
         }
     }
 }
