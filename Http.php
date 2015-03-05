@@ -7,229 +7,367 @@
 
 namespace yxdj\network;
 
+/*
+$request=
+<<<http
+GET /logout HTTP/1.1
+Host: api.yii.app.com
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:33.0) Gecko/20100101 Firefox/33.0
+Connection: Close
+
+
+http;
+
+echo Api::http([
+    'url' => 'http://api.yii.app.com/login',
+    'method' =>'POST',
+    'get' => ['get'=>'aaaa'],
+    'post' => ['post'=>'55555'],
+    'cookie' => ['cookie'=>'555555'],
+    'file' => [
+                ['name'=>'file1','value'=>'33333'],
+                ['name'=>'file2', 'value'=>'4444'],
+                ['name'=>'file2', 'value'=>'5555'],
+              ],
+    //'request2' => $request,
+
+]);
+*/
 /**
-  * ```php
-  * use yxdj\network\Http;
   *
-  * $http = new Http();
-  * 
-  * $url = 'http://php.net';
-  * if ($http->getUrl($url) == 200) {
-  *     echo $http->getKeyword();
-  * } else {
-  *     echo $http->getDebug();
-  * }
-  * ```
-  * get,post,cookie,file都支持数组请求，除了file都支持深维度数据（file本身没必要）
-  * include:hostToIp<fun>,
-  * HTTP控制类
-  * $code=$http->getUrl()/postUrl()/headUrl();
-  * if($code=='200'){
-  *     $this->request/response/content/code;
-  *     $this->getCharset()/getKeyword()/getDebug()
-  * }
+  * code
+  * 自定义
+  * 准备：1**
+  * 正常：200，未完善2**
+  * 跳转：301，302
+  * 请求异常：4**
+  * 服务端异常：5**
+  *
+  * 自定义:
+  * 开始     900
+  * 重置参数 901
+  * 解析URL  902
+  * 解析域名 903    
+  * 设定请求 904     
+  * 建立连接 905
+  * 写入请求 906
+  * 读取头部 907
+  *
   */
 class Http
 {
-    /**
-     *解析后的URL信息
-     */
-    public $urls; 
-
-    /**
-     * 响应码
-     */
-    public $code='999';
-
-    /**
-     * 文档编码
-     */
-    public $charset='unknow';
-
-    /**
-     *文档关键字
-     */
-    public $keyword='unknow';
-
-    /**
-     * 跳转地址
-     */
-    public $location;
 
     /**
      * connection timeout
      */
-    public $ctimeout=15;
+    public $ctimeout = 15;
 
     /**
      * ask timeout
      */
-    public $atimeout=15;
-
-    /**
-     * 请求头
-     */
-    public $request;
-
-    /**
-     * 响应头
-     */
-    public $response;
-
-    /**
-     * 响应内容
-     */
-    public $content;
-
-    /**
-     * 采集开始时间
-     */
-    public $startTime;
-
-    /**
-     * 每一过程起始进间
-     */
-    public $startTime2;
-
-    /**
-     * 执行状态信息
-     */
-    public $message='';
-
-    /**
-     * 执行流程详情
-     */
-    public $infos=array();
+    public $atimeout = 15;    
 
     /**
      * 是否本地DNS解析
      */
-    public $localDNS=false;
-
+    public $ip;
+  
     /**
-     *是否开启调试模式 
+     * 只有-1才得以初始化参数
      */
-    public $debug=true;
-
+    public $jump = -1 ;
+    
+    
     /**
-     *是否启动host配置
+     * 可以接收的响应码
      */
-    public $host=false;
-
-    /**
-     *301,302跳转
-     */
-    public $jump=false;
-
+    public $allow;    
+    
     /**
      * 默认请求头行信息
      */
-    public $line=array(
-        'method'=>'GET',
-        'paths'=>'/',
-        'version'=>'HTTP/1.1'
-        );                
+    public $method;
+    
+    /**
+     * 请求路径
+     */
+    public $path;
+    
+    /**
+     * 请求HTTP版本
+     */
+    public $version;
+                  
 
     /**
      * 默认请求头域信息
      */
-    public $row=array(
-        'Host'=>'localhost',
-        'User-Agent'=>'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:33.0) Gecko/20100101 Firefox/33.0',
-        'Connection'=>'Close'
-        );
+    public $row;
 
     /**
      * 请求GET参数
      */
-    public $get=array();
+    public $get;
     
     /**
      * 请求POST参数
      */
-    public $post=array();   
+    public $post;   
 
     /**
      * 请求COOKIE参数
      */
-    public $cookie=array();
+    public $cookie;
     
     /**
      * 请求发送文件参数
      */
-    public $file=array();
+    public $file;
+    
+    
+
+//---------请求过程中生成-------------------------------------------
+    /**
+     * 是否超时
+     */
+    private $timeout = false;
+
+    /**
+     * 请求是否需要发生跳转，内部生成，内部使用
+     */
+    public $over = false;    
+    
+    /**
+     *解析后的URL信息
+     */
+    private $urls; 
+    
+    /**
+     * 执行状态信息
+     */
+    private $message;
+
+    /**
+     * 执行流程详情
+     */
+    private $infos;
+    /**
+     * 响应码
+     */
+    private $code = 900;
+
+    /**
+     * 文档编码
+     */
+    private $charset;
+
+    /**
+     *文档关键字
+     */
+    private $keyword;
+
+    /**
+     * 跳转地址
+     */
+    private $location;
+
+    /**
+     * 请求头
+     */
+    private $request;
+
+    /**
+     * 响应头
+     */
+    private $response;
+
+    /**
+     * 响应内容
+     */
+    private $content;
+
+    /**
+     * 采集开始时间
+     */
+    private $startTime;
+
+    /**
+     * 每一过程起始进间
+     */
+    private $startTime2;
+
+
+
+
+
     
     /**
      * 构造函数
+     * $this->ctimeout
+     * $this->atimeout
+     * $this->localDNS
      */
-    public function __construct(){
-        $this->response='code:999';
-    }
-
-    /**
-     * head方法访问,初始化
-     */
-    public function headUrl($url, $get=null, $cookie=null){
-        $this->line['method'] = 'HEAD';
-        if($get){
-            $this->get = array_merge($this->get, $get);//合并信息
-        }            
-        if($cookie){
-            $this->cookie = array_merge($this->cookie, $cookie);//合并信息
-        }
-        return $this->run($url, 'head');
-    }
-
-    /**
-     * get方法访问,初始化
-     */
-    public function getUrl($url, $get=null, $cookie=null)
+    public function __construct($config=array())
     {
-        $this->line['method']='GET';
-        if($get){
-            $this->get=array_merge($this->get,$get);
-        }        
-        if($cookie){
-            $this->cookie=array_merge($this->cookie,$cookie);
-        }        
-        return $this->run($url,'get');
+        $this->setConfig($config); 
+    }
+    
+    
+    /**
+     * 设置http配置
+     * 非请求时（构造配置）：写请求参数也是白写，请求时会重置参数(请求就是这样)，
+     * 所以这里只写构造参数
+     *
+     * 请求时最好也就别写构造参数了，干脆分开
+     *
+     * 有一个能数比较特别$row,但它还是属于请求参数，对它初始化之后像里合并
+     */
+    public function setConfig($config=array())
+    {
+        foreach($config as $key => $value){
+            $this->$key = $value;
+        }    
+    }
+    
+
+
+
+    
+    /**
+     * 发送POST请求
+     */
+    public function post($url, $post=null, $cookie = null, $file = null)
+    {
+        $config = array(
+            'method' => 'POST',
+            'url' => $url,
+            'post' => $post,
+            'cookie' => $cookie,
+            'file' => $file,
+        );
+        return $this->request($config);
+    }    
+
+
+    /**
+     * 发送GET请求
+     */    
+    public function get($url, $get=null, $cookie=null)
+    {
+        $config = array(
+            'method' => 'GET',
+            'url' => $url,
+            'get' => $get,
+            'cookie' => $cookie,
+        );
+        return $this->request($config);
+    }  
+
+    /**
+     * 发送HEAD请求
+     */
+    public function head($url, $get=null, $cookie=null)
+    {
+        $config = array(
+            'method' => 'HEAD',
+            'url' => $url,
+            'get' => $get,
+            'cookie' => $cookie,
+        );
+        return $this->request($config);
+    } 
+    
+    /**
+     * 传入配置，对请求各项参数配置
+     * 可以直接传入原始请求信息，直接发送
+     */
+    public function request($config=array())
+    {
+        //响应码
+        $code = $this->run($config);
+        
+        //允许的响应码
+        if (!is_array($this->allow)) {
+            $this->allow = array($this->allow);
+        }
+        
+        //这里是方便调试。
+        //响应确认检查content为主，其它的只是辅助。
+        //响应200及指定的头域，content不合法也没用。
+        //应该统一检查content,再根据情况判断其它
+        if (in_array($code, $this->allow) || empty($this->allow)) {
+            return $this;
+        } else {
+            throw new \Exception('not allow code: '.$code);
+        }           
+    }
+
+    public function isTimeout()
+    {
+        return $this->timeout;
+    }
+    
+    /**
+     * 获取响应码
+     */
+    public function getCode()
+    {
+        return $this->code;
     }
 
     /**
-     * post方法访问,初始化
+     * 获取请求头
      */
-    public function postUrl($url, $post=null, $cookie=null, $file=null)
+    public function getRequest()
     {
-        $this->line['method']='POST';
-        if ($post) {
-            $this->post = array_merge($this->post, $post);
-        }
-        if ($cookie) {
-            $this->cookie = array_merge($this->cookie, $cookie);
-        }
-        if($file){
-            $this->file = array_merge($this->file, $file);
-        }        
-        return $this->run($url, 'post');
+        return $this->request;
     }
-
-
-    //获取调试信息 
-    public function getDebug()
+    
+    /**
+     * 获取响应头
+     */
+    public function getResponse()
+    {
+        return $this->response;
+    }
+    
+    /**
+     * 获取响应内容
+     */
+    public function getContent()
+    {
+        return $this->content;
+    }
+    
+    /**
+     * 获取调试信息 
+     */
+    public function getDebug($content=false, $direct=false)
     {
         $info='';
         $info .= "(request)\r\n"
               . $this->request
               . "\r\n\r\n(response)\r\n"
-              . $this->response
-              . "\r\n\r\n(recode)\r\n";
+              . $this->response;
+        if ($content) {
+            $info .= "\r\n\r\n(content)\r\n"
+                  . $this->content;
+        }
+        $info .= "\r\n\r\n(recode)\r\n";
         foreach ($this->infos as $key => $value) {
-            $info .= str_pad($value['name'] . ': ' . $value['msg'], 50)
+            $info .= str_pad($value['name'] . ': ' . $value['msg'], 60)
                   . '|'
                   . $value['time']
                   . "\r\n";
         }
-        return PHP_SAPI == 'cli' ? $info : nl2br($info);
+        
+        
+        
+        if($direct){
+            return $info;
+        }else{
+            return PHP_SAPI == 'cli' ? $info :  "<pre style=\"background:#000;color:#fff;\">\r\n$info</pre>";//preg_replace('/(?<!\<br) /','&nbsp;',nl2br($info));            
+        }
     }
 
     /**
@@ -237,13 +375,13 @@ class Http
      */
     public function getCharset()
     {
-        if ($this->charset!='unknow') return $this->charset;
+        if (!empty($this->charset)) return $this->charset;
         $charset = array('utf-8','gbk','gb2312');
         $reg='/' . implode('|', $charset) . '/i';
         if ($value = preg_match($reg, $this->response . $this->content, $arr)) {
             $charset = strtolower($arr[0]);
         } else {
-            $charset = 'unknow';
+            $charset = '';
         }
         $this->charset = $charset;
         return $this->charset;
@@ -254,7 +392,7 @@ class Http
      */
     public function getKeyword()
     {
-        if($this->keyword!='unknow') return $this->keyword;
+        if(!empty($this->keyword)) return $this->keyword;
         if(preg_match_all("
                         /<\s*meta\s.*?(keywords|other).*?content\s*=\s*        #查找标识
                         ([\"\'])?                                            #是否有前引号
@@ -264,49 +402,128 @@ class Http
         }else if(preg_match("/<\s*title\s*>(.*?)<\s*\/\s*title\s*>/is",$this->content,$keywords)){
             $keyword=$keywords[1];
         }else{
-            $keyword='unknow';
+            $keyword='';
         }
         $this->keyword=$keyword;
         return $this->keyword;
     }
 
     /**
-     * 运行入口
+     * 执行请求
      */
-    private function run($url, $type='get')
+    private function run($config)
     {
-        //开始
-        $this->start();
+        //开始 900
         $go = true;
-        //设定启动时间
-        $this->startTime2 = $this->startTime = microtime(true);
-        //解析URL
-        $go ? $go = $this->parseUrl($url) : null;
-        //解析域名    
+        //重置参数 901
+        $go ? $go = $this->resetRequest($config) : null;
+        //解析URL 902
+        $go ? $go = $this->parseUrl() : null;
+        //解析域名 903    
         $go ? $go = $this->parseDomain() : null;
-        //设定请求     
+        //设定请求 904     
         $go ? $go = $this->setRequest() : null;
-        //建立连接
+        //建立连接 905
         $go ? $go = $this->connect() : null;
-        //写入请求
+        //写入请求 906
         $go ? $go = $this->writeRequest() : null;
-        //读取头部
+        //读取头部 907
         $go ? $go = $this->readResponse() : null;
         //读取全文   
-        $go ? $go = $this->readContent($type) : null;
+        $go ? $go = $this->readContent() : null;
         //关闭连接
         $go ? $go = $this->close() : null;
         //结束
-        $this->over();
-        return $this->code;
-    }
+        $this->over($go);
+        //返回
+        return $this->code;    
+    }   
+    
+    /**
+     * 重置请求
+     */
+    private function resetRequest($config)
+    {
+       
+        //exit;
+        //这些清空，每次都设置比较合适
+        //301,302跳转时，这些信息再发一次
+        
+        //初始配置一定是-1，不管传来的配置是什么，这里都会执行
+        //如果不配置这个参数，永远都是-1
+        //如果配置了这个参数，只要over,就会又回到-1
+        if ($this->jump < 0) {
+            //设定启动时间
+            $this->startTime2 = $this->startTime = microtime(true);
+     
+            $this->allow = [];
+            $this->infos = array();//执行过程详情
+            $this->over = false;//还未执行over()
+
+            $this->ctimeout = 15;
+            $this->atimeout = 15;
+            $this->method = 'GET';
+            $this->path = '/';
+            $this->version = 'HTTP/1.1';
+            $this->row = array(
+                'Host'=>'localhost',
+                'User-Agent'=>'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 Firefox/35.0',
+                'Connection'=>'Close'
+                );
+            $this->url = '';
+            $this->get = array();
+            $this->post = array();
+            $this->cookie = array();
+            $this->file = array();
+        }
+
+        //以下信息每次，无论如何都得清空
+        $this->message = '';//执行过程最后一步
+        $this->urls = array(); //通过url得到的信息
+        $this->code = 901;
+        $this->charset = '';
+        $this->keyword = '';
+        $this->location = '';
+        $this->request = '';
+        $this->response = '';
+        $this->content = '';
+        $this->ip = '';
+        $this->timeout = false;
+        
+        //上次请求已经清空了，这里只是和默认的row合并
+        if (isset($config['row'])) {
+            $this->row = array_merge($this->row,$config['row']);
+            unset($config['row']);
+        }
+        
+        
+
+        //设置参数
+        $this->setConfig($config);
+
+        //一定要有url选项
+        if (empty($this->url)) {
+            $this->record('resetRequest','Http::url require!');
+            return false;
+        }
+        
+        $this->record('resetRequest','ok');        
+        return true;
+    }    
 
     /**
      * 解析URL
      */
-    private function parseUrl($url)
+    private function parseUrl()
     {
-        if(!preg_match('/^http:\/\//i',$url)) $url='http://'.$url;
+        $this->code = 902;
+        $url = $this->url;
+        if (!preg_match('/^(\w*):\/\//i',$url, $match)) {
+            $url='http://'.$url;
+        } elseif ($match[1] != 'http') {
+            $this->record('parseUrl','ng(not http => '.$url.')');
+            return false;    
+        }
         $urls= parse_url($url); 
         !isset($urls['scheme']) && $urls['scheme'] = 'http';     //获取协议
         !isset($urls['host']) && $urls['host'] = '';                //获取主机
@@ -323,7 +540,7 @@ class Http
 
         $urls['paths'] = $urls['path'].($urls['query'] ? '?'.$urls['query'] : ''); //组拼完整路经                  
         $this->urls=$urls;
-        $this->record('parseUrl','ok');
+        $this->record('parseUrl','ok('.$url.')');
         return true;
     }    
 
@@ -334,32 +551,44 @@ class Http
     {
         //是否启动本地域名解析
         //$this->urls['ip']='121.10.139.10';
-        if($this->host){
-            $this->urls['ip'] = hostToIp($this->urls['host']);    //配置获取IP    
+        $this->code = 903;
+        if (!empty($this->ip)) {
+            if (is_array($this->ip)) {
+                $key = array_rand($this->ip);
+                $this->urls['ip'] = $this->ip[$key];
+            } else {
+                $this->urls['ip'] = $this->ip;
+            }
         }else{
             $this->urls['ip'] = trim(gethostbyname($this->urls['host']));    //自动获取IP        
         }
-            
         $this->record('parseDomain','ok('.$this->urls['ip'].')');
         return true;
     }
-    
+
+
+
     
     /**
      * 设定请求
      */
     private function setRequest()
-    {
+    {          
+        $this->code = 904;
+        if (!empty($this->request)) {
+            $this->record('setRequest','ok(without parser)');
+            return true;
+        }
         //准备部分的请求头    
         $port=$this->urls['port']=='80'?'':':'.$this->urls['port'];
         $this->row['Host']=$this->urls['host'].$port;    
-        $this->line['paths']=$this->urls['paths'];
+        $this->path = $this->urls['paths'];
         //请求行
-        $line = $this->line['method'].' '.$this->line['paths'].' '.$this->line['version']."\r\n";        
+        $line = $this->method.' '.$this->path.' '.$this->version."\r\n";        
 
         //POST值
         $post='';
-        if ($this->line['method'] == 'POST') {
+        if ($this->method == 'POST') {
             //只要有文件，就按文件处理
             if (count($this->file) > 0) {
             
@@ -457,11 +686,17 @@ class Http
      */
     private function connect()
     {
+        $this->code = 905;
         $fp=@fsockopen($this->urls['ip'], $this->urls['port'], $errno, $erron, $this->ctimeout);
         if(!$fp){
-            $this->record('connect','ng!');
+            $this->record('connect','ng('.$errno.')');
+            //connect time out!
+            if($errno == 10060){
+                $this->timeout = true;
+            }
+            
             return false;
-        }        
+        }
 
         //设定参数
         stream_set_blocking($fp, true);//设置为阻塞模式
@@ -478,6 +713,7 @@ class Http
      */
     private function writeRequest()
     {
+        $this->code = 906;
         $write=fwrite($this->fp, $this->request);
         if(!$write){
             $this->record('writeRequest', 'ng');
@@ -495,73 +731,65 @@ class Http
      */
     private function readResponse()
     {
+        $this->code = 907;
         //确认资源句柄
         if(!is_resource($this->fp)){
             $this->record('readResponse', 'no resource handle!');
             return false;
         }    
-        
+
         //读取HTTP头
         $header='';
         while(!feof($this->fp)){
             $headerRow = fgets($this->fp);
             if($this->checkTimeout($this->fp)){//是否超时后进来
                 $this->record('readResponse','read time out(http)!');
+                $this->timeout = true;
                 @fclose($this->fp);
                 return false;
             }
-        
+      
             //匹配响应状态
             if(preg_match("/^HTTP\/[^\s]+\s+([^\s]+)\b/",trim($headerRow), $status)){
-                $this->code=$status[1];                
+                $this->code= (int)$status[1];                
             }
 
             //处理301，302 获取跳转地址
             if(preg_match("/^(Location:|URI:)\s*(.*)/i",trim($headerRow),$location)){
                 $this->location=$location[2];    
             }
-            
+              
             
             if(trim($headerRow)==''){
                 break;
             }else{
                 $header.=$headerRow;
-            }    
+            }
+
         }
         $this->response=$header;
-        /*
-        if($this->jump&&($this->code=='301' || $this->code=='302')&&$this->location){
-                
-                return($this->getUrl($this->location));
+
+        if ($this->jump > 0 &&($this->code=='301' || $this->code=='302')&&$this->location) {
+                $this->jump--; 
+                $this->record('readResponse','code: '.$this->code.' '.$this->location);
+                $this->request(array('url' => $this->location));
+                return false;
         }
-        */
+        
         $this->record('readResponse','code: '.$this->code.' '.$this->location);
         return true;
         
-        /*
-        if($this->code!='200'){
-            $this->record('readResponse','failure: '.$this->code.' '.$this->location);
-            @fclose($this->fp);
-            return false;
-        }
-        $this->record('readResponse','ok: '.$this->code.' '.$this->location);
-        return true;
-        */
+
     }
 
 
     
     
     /**
-     * 获取HTML
+     * 获取HTTP响应体
      */
     private function readContent()
     {
-        if($this->line['method']=='HEAD'){
-            $this->record('readContent','hand request!');
-            return false;
-        }
-    
         //确认资源句柄
         if(!is_resource($this->fp)){
             $this->record('readContent','no resource handle!');
@@ -573,6 +801,7 @@ class Http
         while (!feof($this->fp)) {
             if($this->checkTimeout($this->fp)){
                 $this->record('readContent','read time out(html)!');
+                $this->timeout = true;
                 @fclose($this->fp);
                 return false;
             }
@@ -604,9 +833,7 @@ class Http
     private function record($name,$message)
     {
         $this->message=$name.'=>'.$message;
-        if($this->debug){            
-            $this->infos[]=array('name'=>$name,'msg'=>$message,'time'=>$this->difTime());
-        }
+        $this->infos[]=array('name'=>$name,'msg'=>$message,'time'=>$this->difTime());
     }
     
     
@@ -622,32 +849,25 @@ class Http
         return $dif.'s';
     }    
     
-    private function start()
-    {
-        $this->infos = array();
-        $this->urls = array(); 
-        $this->code = '999';
-        $this->charset = 'unknow';
-        $this->keyword = 'unknow';
-        $this->location = '';
 
-
-        $this->request = '';
-        $this->response = '';
-        $this->content = '';
-        
-    }
-    
-    private function over()
+    /**
+     * 记录请求结束
+     */
+    private function over($go)
     {
+        if ($this->over) {
+            return false;
+        }
         $this->endTime = microtime(true);//设定结束时间
         $start = date('Y-m-d H:i:s', $this->startTime);
         $end = date('Y-m-d H:i:s', $this->endTime);
         $this->infos[] = array(
-            'name' => 'over',
+            'name' => 'over('.$this->code.')',
             'msg' => $start.'->'.$end,
             'time' => $this->difTime($this->startTime, $this->endTime),
         );
+        $this->jump = -1;
+        $this->over = true;  
     }
     
     /**
@@ -656,10 +876,122 @@ class Http
     private function checkTimeout($fp)
     {
         //读取失败，检测读取状态 
-        $info = stream_get_meta_data($fp);   
+        $info = stream_get_meta_data($fp);       
         if ($info['timed_out']) {
             return true;
         }            
         return false;
     }
+
+        
+    /**
+     * 从给定内容中取得所有a标签链接
+     */
+	public function a($real = false) {
+		$match=array();
+		preg_match_all("'<\s*a\s.*?href\s*=\s*([\"\'])?(?(1) (.*?)\\1 | ([^\s\>]+))'isx", $this->content, $links); 
+		// catenate the non-empty matches from the conditional subpattern
+		while (list($key, $val) = each($links[2])) {
+			if (!empty($val))
+				$match[] = $val;
+		} while (list($key, $val) = each($links[3])) {
+			if (!empty($val))
+				$match[] = $val;
+		} 
+		$match=array_unique($match);//去除相同
+        
+        if ($real) {
+            $match = self::realPath($match);
+        }        
+        
+		// return the links
+		return $match;
+	}
+
+    /**
+     * 从给定内容中取得所有img标签链接
+     */
+	public function img($real = false) {
+		$match=array();
+		preg_match_all("'<\s*img\s.*?src\s*=\s*([\"\'])?(?(1) (.*?)\\1 | ([^\s\>]+))'isx", $this->content, $links); 
+		// catenate the non-empty matches from the conditional subpattern
+		while (list($key, $val) = each($links[2])) {
+			if (!empty($val))
+				$match[] = $val;
+		} 
+		while (list($key, $val) = each($links[3])) {
+			if (!empty($val))
+				$match[] = $val;
+		} 
+		$match=array_unique($match);//去除相同
+        
+        
+        if ($real) {
+            $match = $this->realPath($match);
+        }
+        
+		// return the links
+		return $match;
+	}
+
+    /**
+     * 拼接路径完整性
+     */
+	private function realPath($url){
+
+        $scheme = $this->urls['scheme'].'://'; 
+		$host=$this->urls['host'];
+		$port = $this->urls['port']=='80'?'':':'.$urls['port'];		
+		
+        $path=$scheme.$host.$port;//绝对路径
+		$path2=$path.$this->urls['path'];
+        
+		$path2=substr($path2,-1)=='/'?$path2:dirname($path2);//以'/'结束直接以此为相对路径，否则上一级
+		$path2=substr($path2,-1)=='/'?$path2:$path2.'/';//最后以'/'结束
+		 
+		$url=$this->runPath($url,$path,$path2);	
+		return $url;
+	}
+	
+	/**
+     * 拼接路径完整性2,递规
+     */
+	private function runPath($str1,$path,$path2){
+		if(is_array($str1)){
+			$urls=array();
+			foreach($str1 as $key => $value){
+				$urls[$key]=self::runPath($value,$path,$path2);
+			}
+			return $urls;
+		}
+
+		if(is_string($str1)){
+			if(preg_match('/^[a-z]{1,10}:\/\//i',dirname($str1))){
+				return $str1;
+			}
+			
+			if(substr($str1,0,1)=='/'){
+				return $path.$str1;
+			}
+			
+			if(substr($str1,0,1)!='.'){
+				return $path2.$str1;
+			}
+			
+			if(substr($str1,0,2)=='./'){
+				return $path2.substr($str1,2);
+			}  
+			
+			if(substr($str1,0,3)=='../'){
+				while(substr($str1,0,3)=='../'){
+					$str1=substr($str1,3);
+					$path2=dirname($path2);			
+				}
+				return $path2.'/'.$str1;
+			}
+			return $str1;
+		}
+	} 
+    
 }
+

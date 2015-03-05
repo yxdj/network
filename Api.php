@@ -7,158 +7,92 @@
 
 namespace yxdj\network;
 
-// +----------------------------------------------------------------------
-// | yxdj:php-cli
-// +----------------------------------------------------------------------
-// | Copyright (c) 2014 xuyuan All rights reserved.
-// +----------------------------------------------------------------------
-// | Author: xuyuan
-// +----------------------------------------------------------------------
 
-/*
-api并不一定是指向一台服务的
-有可能就是本地，有可能多台服务，每台服务提供的接口不一样
-这里的api-client就是要做一个统一的调用入口
-这里我要这样测试：
-1.本地接口:localhost
-2.远程api接口：api.yuan37.test,
-远程接口也可是指向多台服务,api.yuan37.test主要放自已的机密数据
-client提供一套机制去访问各种服务
+/**
+ * api接口是位于客户端与服务端的中间层
+ * 用于对客户端请求参数的调整与封装，对服务端响应结果的检查与处理，生成处理结果
+ * 最后将处理结果回复给客户端
+ * 
+ * 请求参数的处理：
+ * 不管是什么参数，都不应直接抛异常，总能得到一个响应，哪怕是空的
+ * 所以请求参数尽可能直观，能检查更好，不检查的话，在响应处理中做回复
+ *
+ * 响应结果的处理：
+ * content才是结果，code只是辅助信息，它是200不一定内容完好，不是200不一定内容不需要
+ * content结果常用3种，text,xml,json
+ * 请求的发送是主动的，想怎么发，发什么，发到哪都是自已确定，只要发了都视为发出去
+ * 响应的接收是被动的，回复过来的不一定是合法的，但总是有个内容，空也算
+ *
+ * 所以主要的过程还就是在内容的解析处理上，要的是内容，就检查内容，和code没直接关系
+ * 判定响应是否合法，首先要看期待什么样的响应，有哪些明显特征
+ * 这和请求的解析类似，看准允什么样的请求，
+ * 协议层面的底层自行处理了，要做的就是应用层
+ * 
+ * 和请求不一样的是，请求的参数形式较通用get,post,cookie，可以逐个分析，另外谁都可以访问
+ * 响应就一块content,可存在的形式即text,json,xml，其它
+ * text: 比对性的内容直接比较即可，数据性的内容基本不需再做处理，有例外别说
+ * json: 转成数组，有明显用于判断的标示名值对，比较即可，其它的也很少处理
+ * xml: 和json差不多，
+ *
+ * 结论，即然可用于请求或响应，两都之间肯定有事先达成一致，总有一个可用于判定的标识
+ * 其间的比对过程：
+ * 1.请求的发送与响应，这就是一个认证过程
+ * 2.把content当成某个格式来处理
+ * 3.格式化后验证标识
+ *
+ * 错误的交互总是可能存在，或伪请求，或伪响应
+ * 要做到尽可能的达成信任，必需比对信息明确，清淅，但对第3方又是隐蔽的
+ * 所以这个过程是双方的，当单方要达到这个目标的，必需要足够的了解对方的规则
+ * 所以规则是应该双方协商的，当一方已经确定，另一方就要努力发现已确定的规则
+ * 
+ * 任何交互都是如此，ajax也是
+ * 要交互之前首先就确定或发现规则
+ *
+ * 常用的交互规则：
+ * text:
+ * 1.单一状态；
+ * 2.单一内容，按指定规则解析出状态和内容；
+ * 3.按一定规则分解出状态或内容,json/xml就是两种现成的格式
+ * 
+ * json:
+ * {
+ * "status":"ok",//状态
+ * "cout":100,//其它辅助信息
+ * "data":[]//内空
+ * }
+ *
+ * 检查status是否是存在并按特定方式查收内容，这就是最好的方式了，
+ * 还要更好，那就是从安全性和隐蔽性上处理了
+ *
+ * 另外需要重发请求的情况是：由于意外或随机产生的
+ */
+class Api
+{
+    //协议
+    public static $protocol=array();
 
-Api::yuan37('[user:]login',array('name'=>'xuyuan'));
 
-规则说明：server,class,method
-server:yuan37
-class:yuan37/user
-method:login
-data:array();
-
-*/
-
-abstract class Api{
-	public static $classMap=array();
-	public static $obj=array();//实例化后的API对象
-	
-	//其它方法都定义为私有方法，保证访问的所有的方法都被__callstatic捕获
-	/*
-    类名：$server,
-    方法：$params[0]
-    */
-    public static function __callstatic($server,$params){
-		
-		//解析参数
-		list($server,$class,$method,$data)=self::parseSpace($server,$params);
-
-        $className=$class;
-
-		//echo $file;exit;
-		if(!isset(self::$obj[$className])){
-				self::$obj[$className]=new $className($method);	
-		}
-		$obj=self::$obj[$className];
-		
-		
-		//初始化，执行，返回
-		return $obj->_init(array(
-			'server'=>'yuan37',
-			'class'=>'Yuan37',
-			'method'=>$method,
-			'data'=>$data
-			)
-		);
+    public static function __callstatic($action,$params){
+        $action = get_called_class().':'.$action;
+        return "can't ask a not exists method '{$action}'";
 	}
-	
-	
-	
-	
-	
-	
-	
-	//解析参数，
-	private static function parseSpace($server,$params){
-        
-        $class=$params[0];
-        $method=$server;
-        
-        /*
-		//$path=ucfirst($server);						//空间名
-		$type=explode(':',$params[0]);				//对象名:方法名
-		if(count($type)==1){
-			$class=$server;
-			$method=$type[0];		
-		}else if(count($type)==2){
-			$class=$type[0];
-			$method=$type[1];		
-		}else{
-			$class='self';
-			$method='error';
-		}
-		*/
-		$data=isset($params[1])?$params[1]:array(); //参数	
-		
-		return array($server,$class,$method,$data);
-	}
-	
-	
-	
-	//参数解析出错
-	private static function error(){
-		return 'ng';
-	}
-
+ 
     
-    
-	protected $server;
-	protected $class;
-	protected $method;
-	protected $data=array();
-	protected $result='';
+    //获取或设置http连接
+    public static function getHttp($httpConfig=array())
+    {
+        if (!isset(Api::$protocol['http']) || Api::$protocol['http'] === null) {
+            Api::$protocol['http'] = new Http($httpConfig);
+        } else {
+            Api::$protocol['http']->setConfig($httpConfig);
+        } 
+        return Api::$protocol['http'];
+    }
 	
-	//abstract function run($method,$before,$after);
-	//访问一个不存在的方法,先给个机会访问接口自已实现
-	public function __call($method,$params){
-		if(method_exists($this,'bootstrap')){
-			return $this->bootstrap($method);
-		}else{	
-			return "can't ask a not exists method '{$method}'";
-		}
-	}
-	
-	//访问入口
-	public function _init($params){
-		$this->result='';
-		foreach($params as $key => $value){
-			$this->$key=$value;
-		}
-		$method=$this->method;
-		return $this->$method();
-	}
-	
-	//映射到服务端，供与此客户端相同规则的服务端使用
-	protected function _mapping(){
-		$this->data['api']=$this->class.':'.$this->method;
-		//执行访问
-		$http=new Http();
-		if($http->postUrl($this->url,$this->data)=='200'){
-			return $http->content;
-		}else{
-			return $http->getDebug();
-		}
-	}	
-	
-	
-	//访问,入口,用些相同动作在此处理,并在此接收参数
-	protected function _ask(){
-		$http=H();
-		if($http->postUrl($this->url,$this->data)=='200'){
-			return $http->content;
-		}else{
-			return $http->getDebug();
-		}	
-	}
-        
+
+    //当前api类名
     public static function className()
     {
         return get_called_class();
-    }       
+    }  
 }
