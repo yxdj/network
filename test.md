@@ -336,7 +336,7 @@ over(200): 2015-03-05 15:43:07->2015-03-05 15:43:07         |0.01s
 >  在请求后还需对响应结果进行判断，解析，处理成最后需要的格式  
 >  可以将这个过程封装成一个API，以便更简便的调用  
 
-**2.3.1 API定义**
+**服务端定义：用户登录验证**
 ```php
 //server:http://test/login.php
 <?php
@@ -348,7 +348,7 @@ $password = !empty($_POST['password']) && is_string($_POST['password'])?$_POST['
 if ($user = findUser($username, $password)) {
     $result = ['status' => 'ok', 'data' => $user];
 } else {
-    $result = ['status' => 'ng', 'error' => 'usernaem or password error!'];
+    $result = ['status' => 'ng', 'error' => 'username or password error!'];
 }
 
 echo json_encode($result);
@@ -377,7 +377,7 @@ function findUser($username, $password){
 }
 ```
 
-
+**客户端定义：请求发送与响应处理**
 ```php
 //client
 namespace yxdj\network\api;
@@ -407,14 +407,14 @@ class TestApi extends Api
 }
 ```
 
-**TestApi::login调用**
+**TestApi::login()调用**
 ```php
 use yxdj\network\api\TestApi;
 
 //(output)yxdj login success!
 echo TestApi::login(['username'=>'yxdj', 'password'=>'yxdj_pwd']);
 
-//(output)usernaem or password error!
+//(output)username or password error!
 echo TestApi::login(['username'=>'yxdj', 'password'=>'xxx']);
 ```
 
