@@ -143,6 +143,19 @@ echo $http->getCharset();
 
 ###自定义请求
 ```php
+//server
+print_r($_GET);
+
+print_r($_POST);
+
+print_r($_COOKIE);
+
+print_r($_FILES);
+```
+
+
+```php
+//client
 $http = Api::getHttp()->request([
     'method' => 'POST',
     'url' => 'http://yii.app.com/test',
@@ -164,54 +177,54 @@ POST /test?get1=param2&get2%5Ba%5D=param2a&get2%5Bb%5D=param2b HTTP/1.1
 Host: yii.app.com
 User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:33.0) Gecko/20100101 Firefox/33.0
 Connection: Close
-Content-Type: multipart/form-data; boundary=yxdj651159506
-Content-Length: 976
+Content-Type: multipart/form-data; boundary=yxdj1933971410
+Content-Length: 983
 Cookie: cookie1=param2; cookie2%5Ba%5D=param2a; cookie2%5Bb%5D=param2b
 
---yxdj651159506
+--yxdj1933971410
 Content-Disposition: form-data; name="post1"
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 param2
---yxdj651159506
+--yxdj1933971410
 Content-Disposition: form-data; name="post2[a]"
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 param2a
---yxdj651159506
+--yxdj1933971410
 Content-Disposition: form-data; name="post2[b]"
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 param2b
---yxdj651159506
+--yxdj1933971410
 Content-Disposition: form-data; name="file1"; filename="111.txt"
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: binary
 
 123456
---yxdj651159506
+--yxdj1933971410
 Content-Disposition: form-data; name="file2[a]"; filename="aaa.xxx"
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: binary
 
 xxxxxx
---yxdj651159506
+--yxdj1933971410
 Content-Disposition: form-data; name="file2[b]"; filename="bbb.yyy"
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: binary
 
 yyyyyy
---yxdj651159506--
+--yxdj1933971410--
 
 (response)
 HTTP/1.1 200 OK
-Date: Thu, 05 Mar 2015 06:35:52 GMT
+Date: Thu, 05 Mar 2015 07:31:29 GMT
 Server: Apache/2.4.9 (Win64) PHP/5.5.12
 X-Powered-By: PHP/5.5.12
-Content-Length: 1411
+Content-Length: 1393
 Connection: close
 Content-Type: text/html
 
@@ -226,7 +239,6 @@ Array
             [b] => param2b
         )
 
-    [page] => 123
 )
 Array
 (
@@ -254,7 +266,7 @@ Array
         (
             [name] => 111.txt
             [type] => application/octet-stream
-            [tmp_name] => D:\WAMP\wamp\tmp\phpD0F7.tmp
+            [tmp_name] => D:\WAMP\wamp\tmp\phpBA47.tmp
             [error] => 0
             [size] => 6
         )
@@ -275,8 +287,8 @@ Array
 
             [tmp_name] => Array
                 (
-                    [a] => D:\WAMP\wamp\tmp\phpD0F8.tmp
-                    [b] => D:\WAMP\wamp\tmp\phpD0F9.tmp
+                    [a] => D:\WAMP\wamp\tmp\phpBA48.tmp
+                    [b] => D:\WAMP\wamp\tmp\phpBA49.tmp
                 )
 
             [error] => Array
@@ -299,15 +311,14 @@ Array
 (recode)
 resetRequest: ok                                            |0s
 parseUrl: ok(http://yii.app.com/test)                       |0s
-parseDomain: ok(127.0.0.1)                                  |0s
+parseDomain: ok(127.0.0.1)                                  |0.01s
 setRequest: ok                                              |0s
-connect: ok                                                 |0.001s
+connect: ok                                                 |0s
 writeRequest: ok                                            |0s
-readResponse: code: 200                                     |0.053s
+readResponse: code: 200                                     |0.04s
 readContent: ok                                             |0s
 close: ok                                                   |0s
-over(200): 2015-03-05 14:35:52->2015-03-05 14:35:52         |0.054s
-
+over(200): 2015-03-05 15:31:29->2015-03-05 15:31:29         |0.05s
 
 
 */
