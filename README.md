@@ -118,13 +118,13 @@ $http->getKeyword()
 $http->getCharset()
 
 //响应体中a标签的链接（如果能解析到）
-$this->a()
+$http->a()
 
 //响应体中img标签的链接（如果能解析到）
-$this->img()
+$http->img()
 
 //是否请求超时
-$this->isTimeout()
+$http->isTimeout()
 ```
 
 
