@@ -466,7 +466,7 @@ class Http
             //设定启动时间
             $this->startTime2 = $this->startTime = microtime(true);
      
-            $this->allow = [];
+            $this->allow = array();
             $this->infos = array();//执行过程详情
             $this->over = false;//还未执行over()
 
