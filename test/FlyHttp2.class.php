@@ -444,16 +444,16 @@ class FlyHttp
         $url = $this->url;
         if (!preg_match('/^(\w*):\/\//i',$url, $match)) {
             $url='http://'.$url;
-        } elseif ($match[1] != 'http' && $match[1] != 'https') {
-            $this->record('parseUrl','ng(not http(s) => '.$url.')');
-            return false;  
+        } elseif ($match[1] != 'http') {
+            $this->record('parseUrl','ng(not http => '.$url.')');
+            return false;    
         }
         $urls= parse_url($url); 
         !isset($urls['scheme']) && $urls['scheme'] = 'http';     //获取协议
         !isset($urls['host']) && $urls['host'] = '';                //获取主机
         !isset($urls['path']) && $urls['path'] = '/';           //获取路径
         !isset($urls['query']) && $urls['query'] = '';           //获取参数
-        !isset($urls['port']) && ($urls['scheme'] == 'https' ? $urls['port'] = '443' : $urls['port'] = '80');//获取端口    
+        !isset($urls['port']) && $urls['port'] = '80';             //获取端口    
 
         //添加GET参数 
         if (count($this->get)>0){
@@ -462,7 +462,7 @@ class FlyHttp
             $urls['query']=trim(http_build_query($output));//重新生成查询字符串            
         }
 
-        $urls['paths'] = $urls['path'].(!empty($urls['query']) ? '?'.$urls['query'] : ''); //组拼完整路经                  
+        $urls['paths'] = $urls['path'].($urls['query'] ? '?'.$urls['query'] : ''); //组拼完整路经                  
         $this->urls=$urls;
         $this->record('parseUrl','ok('.$url.')');
         return true;
@@ -486,7 +486,7 @@ class FlyHttp
         }else{
             $this->urls['ip'] = trim(gethostbyname($this->urls['host']));    //自动获取IP        
         }
-        $this->record('parseDomain','ok('.$this->urls['ip'].':'.$this->urls['port'].')');
+        $this->record('parseDomain','ok('.$this->urls['ip'].')');
         return true;
     }
 
@@ -613,12 +613,7 @@ class FlyHttp
     private function connect()
     {
         $this->code = 905;
-        if (($this->urls['scheme']) == 'https') {
-            $ip = 'ssl://'.$this->urls['ip'];
-        } else {
-            $ip = $this->urls['ip'];
-        }
-        $fp=@fsockopen($ip, $this->urls['port'], $errno, $erron, $this->ctimeout);
+        $fp=@fsockopen($this->urls['ip'], $this->urls['port'], $errno, $erron, $this->ctimeout);
         if(!$fp){
             $this->record('connect','ng('.$errno.')');
             //connect time out!
@@ -823,6 +818,55 @@ class FlyHttp
     {
         return $this->timeout;
     }
+
+    
+    /**
+     * 获取调试信息 
+     */
+    public function getDebug($content=false, $direct=false)
+    {
+        $info='';
+        $info .= "(request)\r\n"
+              . $this->request
+              . "\r\n\r\n(response)\r\n"
+              . $this->response;
+        if ($content) {
+            $info .= "\r\n\r\n(content)\r\n"
+                  . $this->content;
+        }
+        $info .= "\r\n\r\n(recode)\r\n";
+        foreach ($this->infos as $key => $value) {
+            $info .= str_pad($value['name'] . ': ' . $value['msg'], 60)
+                  . '|'
+                  . $value['time']
+                  . "\r\n";
+        }
+        if ($direct) {
+            return $info;
+        } else {
+            return PHP_SAPI == 'cli' ? $info :  "<pre style=\"background:#000;color:#fff;\">\r\n$info</pre>";//preg_replace('/(?<!\<br) /','&nbsp;',nl2br($info));            
+        }
+    }
+
+    /**
+     * 执行流程
+     */
+    public function getRecord($direct=false)
+    {
+        $info = '';
+        foreach ($this->infos as $key => $value) {
+            $info .= str_pad($value['name'] . ': ' . $value['msg'], 60)
+                  . '|'
+                  . $value['time']
+                  . "\r\n";
+        }
+        if ($direct) {
+            return $info;
+        } else {
+            return PHP_SAPI == 'cli' ? $info :  "<pre style=\"background:#000;color:#fff;\">\r\n$info</pre>";//preg_replace('/(?<!\<br) /','&nbsp;',nl2br($info));            
+        }        
+    } 
+
     
     /**
      * 获取响应码
@@ -855,7 +899,7 @@ class FlyHttp
     {
         if ($do) {
             //return http_chunked_decode($this->content);
-            return $this->unchunk($this->content);
+            return $this->unchunk2($this->content);
         } else {
             return $this->content;
         }
@@ -867,36 +911,8 @@ class FlyHttp
     public function getMessage()
     {
         return $this->message;
-    }
+    }   
     
-    /**
-     * 获取调试信息 
-     */
-    public function getDebug($content=false, $direct=false)
-    {
-        $info='';
-        $info .= "(request)\r\n"
-              . $this->request
-              . "\r\n\r\n(response)\r\n"
-              . $this->response;
-        if ($content) {
-            $info .= "\r\n\r\n(content)\r\n"
-                  . $this->content;
-        }
-        $info .= "\r\n\r\n(recode)\r\n";
-        foreach ($this->infos as $key => $value) {
-            $info .= str_pad($value['name'] . ': ' . $value['msg'], 60)
-                  . '|'
-                  . $value['time']
-                  . "\r\n";
-        }
-        if ($direct) {
-            return $info;
-        } else {
-            return PHP_SAPI == 'cli' ? $info :  "<pre style=\"background:#000;color:#fff;\">\r\n$info</pre>";//preg_replace('/(?<!\<br) /','&nbsp;',nl2br($info));            
-        }
-    }
-
     /**
      * 获取文档编码
      */
@@ -1057,50 +1073,36 @@ class FlyHttp
 			),
 			$result
 		);
-	}    
-
+	}
     
+    //过滤文档长度标识
+    private function unchunk2($chunk) {
+        if (!function_exists('http-chunked-decode')) {
+            $pos = 0;
+            $len = strlen($chunk);
+            $dechunk = null; 
+            while(($pos < $len)
+                && ($chunkLenHex = substr($chunk,$pos, ($newlineAt = strpos($chunk,"\n",$pos+1))-$pos)))
+            {
+                if (!$this->is_hex($chunkLenHex)) {
+                    //trigger_error('Value is not properly chunk encoded', E_USER_WARNING);
+                    return $chunk;
+                }
+                $pos = $newlineAt + 1;
+                $chunkLen = hexdec(rtrim($chunkLenHex,"\r\n"));
+                $dechunk .= substr($chunk, $pos, $chunkLen);
+                $pos = strpos($chunk, "\n", $pos + $chunkLen) + 1;
+            }
+            return $dechunk;
+        } else {
+            return http_chunked_decode($result);
+        }
+    }
+
+    private function is_hex($hex) {
+        $hex = strtolower(trim(ltrim($hex,"0")));
+        if (empty($hex)) { $hex = 0; };
+        $dec = hexdec($hex);
+        return ($hex == dechex($dec));
+    }
 }
-
-if (!function_exists('http-chunked-decode')) { 
-    /** 
-     * dechunk an http 'transfer-encoding: chunked' message 
-     * 
-     * @param string $chunk the encoded message 
-     * @return string the decoded message.  If $chunk wasn't encoded properly it will be returned unmodified. 
-     */ 
-    function http_chunked_decode($chunk) { 
-        $pos = 0; 
-        $len = strlen($chunk); 
-        $dechunk = null; 
-
-        while(($pos < $len) 
-            && ($chunkLenHex = substr($chunk,$pos, ($newlineAt = strpos($chunk,"\n",$pos+1))-$pos))) 
-        { 
-            if (! is_hex($chunkLenHex)) { 
-                trigger_error('Value is not properly chunk encoded', E_USER_WARNING); 
-                return $chunk; 
-            } 
-
-            $pos = $newlineAt + 1; 
-            $chunkLen = hexdec(rtrim($chunkLenHex,"\r\n")); 
-            $dechunk .= substr($chunk, $pos, $chunkLen); 
-            $pos = strpos($chunk, "\n", $pos + $chunkLen) + 1; 
-        } 
-        return $dechunk; 
-    } 
-} 
-
-    /** 
-     * determine if a string can represent a number in hexadecimal 
-     * 
-     * @param string $hex 
-     * @return boolean true if the string is a hex, otherwise false 
-     */ 
-    function is_hex($hex) { 
-        // regex is for weenies 
-        $hex = strtolower(trim(ltrim($hex,"0"))); 
-        if (empty($hex)) { $hex = 0; }; 
-        $dec = hexdec($hex); 
-        return ($hex == dechex($dec)); 
-    } 
