@@ -89,7 +89,17 @@ class Api
         return Api::$protocol['http'];
     }
 	
-
+    //获取或设置http连接
+    public static function getCurl($httpConfig=array())
+    {
+        if (!isset(Api::$protocol['curl']) || Api::$protocol['curl'] === null) {
+            Api::$protocol['curl'] = new Http($httpConfig);
+        } else {
+            Api::$protocol['curl']->setConfig($httpConfig);
+        } 
+        return Api::$protocol['curl'];
+    }
+    
     //当前api类名
     public static function className()
     {

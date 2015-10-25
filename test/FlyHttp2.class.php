@@ -444,8 +444,8 @@ class FlyHttp
         $url = $this->url;
         if (!preg_match('/^(\w*):\/\//i',$url, $match)) {
             $url='http://'.$url;
-        } elseif ($match[1] != 'http') {
-            $this->record('parseUrl','ng(not http => '.$url.')');
+        } elseif ($match[1] != 'http' && $match[1] != 'https') {
+            $this->record('parseUrl','ng(not http(s) => '.$url.')');
             return false;    
         }
         $urls= parse_url($url); 
@@ -453,7 +453,7 @@ class FlyHttp
         !isset($urls['host']) && $urls['host'] = '';                //获取主机
         !isset($urls['path']) && $urls['path'] = '/';           //获取路径
         !isset($urls['query']) && $urls['query'] = '';           //获取参数
-        !isset($urls['port']) && $urls['port'] = '80';             //获取端口    
+        !isset($urls['port']) && ($urls['scheme'] == 'https' ? $urls['port'] = '443' : $urls['port'] = '80');//获取端口  
 
         //添加GET参数 
         if (count($this->get)>0){
@@ -462,7 +462,7 @@ class FlyHttp
             $urls['query']=trim(http_build_query($output));//重新生成查询字符串            
         }
 
-        $urls['paths'] = $urls['path'].($urls['query'] ? '?'.$urls['query'] : ''); //组拼完整路经                  
+        $urls['paths'] = $urls['path'].(!empty($urls['query']) ? '?'.$urls['query'] : ''); //组拼完整路经                 
         $this->urls=$urls;
         $this->record('parseUrl','ok('.$url.')');
         return true;
@@ -486,7 +486,7 @@ class FlyHttp
         }else{
             $this->urls['ip'] = trim(gethostbyname($this->urls['host']));    //自动获取IP        
         }
-        $this->record('parseDomain','ok('.$this->urls['ip'].')');
+        $this->record('parseDomain','ok('.$this->urls['ip'].':'.$this->urls['port'].')');
         return true;
     }
 
@@ -613,7 +613,12 @@ class FlyHttp
     private function connect()
     {
         $this->code = 905;
-        $fp=@fsockopen($this->urls['ip'], $this->urls['port'], $errno, $erron, $this->ctimeout);
+        if (($this->urls['scheme']) == 'https') {
+            $ip = 'ssl://'.$this->urls['ip'];
+        } else {
+            $ip = $this->urls['ip'];
+        }
+        $fp=@fsockopen($ip, $this->urls['port'], $errno, $erron, $this->ctimeout);
         if(!$fp){
             $this->record('connect','ng('.$errno.')');
             //connect time out!
@@ -1106,3 +1111,6 @@ class FlyHttp
         return ($hex == dechex($dec));
     }
 }
+
+ 
+
