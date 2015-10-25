@@ -93,7 +93,7 @@ class Api
     public static function getCurl($httpConfig=array())
     {
         if (!isset(Api::$protocol['curl']) || Api::$protocol['curl'] === null) {
-            Api::$protocol['curl'] = new Http($httpConfig);
+            Api::$protocol['curl'] = new Curl($httpConfig);
         } else {
             Api::$protocol['curl']->setConfig($httpConfig);
         } 
