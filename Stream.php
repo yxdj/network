@@ -5,7 +5,7 @@
  * @author xuyuan <1184411413@qq.com>
  */
 
-//namespace yxdj\network;
+namespace yxdj\network;
 
 /**
  * ```php
@@ -79,7 +79,7 @@
  * 读取头部 907
  *
  */
-class FlyHttp
+class Stream
 {
 
     /**
@@ -382,7 +382,7 @@ class FlyHttp
             //设定启动时间
             $this->startTime2 = $this->startTime = microtime(true);
      
-            $this->allow = [];
+            $this->allow = array();
             $this->infos = array();//执行过程详情
             $this->over = false;//还未执行over()
 
@@ -904,7 +904,7 @@ class FlyHttp
     {
         if ($do) {
             //return http_chunked_decode($this->content);
-            return $this->unchunk2($this->content);
+            return $this->unchunk($this->content);
         } else {
             return $this->content;
         }
@@ -1064,7 +1064,7 @@ class FlyHttp
 			}
 			return $str1;
 		}
-	} 
+	}
 
 
 	//过滤文档长度标识
@@ -1111,6 +1111,3 @@ class FlyHttp
         return ($hex == dechex($dec));
     }
 }
-
- 
-

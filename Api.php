@@ -99,6 +99,17 @@ class Api
         } 
         return Api::$protocol['curl'];
     }
+
+    //获取或设置http连接
+    public static function getStream($httpConfig=array())
+    {
+        if (!isset(Api::$protocol['stream']) || Api::$protocol['stream'] === null) {
+            Api::$protocol['stream'] = new Stream($httpConfig);
+        } else {
+            Api::$protocol['stream']->setConfig($httpConfig);
+        } 
+        return Api::$protocol['stream'];
+    }
     
     //当前api类名
     public static function className()
