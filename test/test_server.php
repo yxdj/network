@@ -6,6 +6,33 @@
  */
 
 
+//composer autoload
+require('../../../autoload.php'); 
+
+use yxdj\filesystem\Upload;
+
+
+if (empty($_SERVER['HTTP_XUYUAN']) || $_SERVER['HTTP_XUYUAN'] != 'test') {
+    exit('you do not have access!');
+}
+
+$upload = new Upload();
+
+
+
+$file = $_FILES['file1'];
+$root = __DIR__;
+$cut = 'file';
+$rname = $file['name'];
+$result = $upload->upload($file,$root,$cut,$rname);
+if (!$result) {
+    echo $upload->error;
+} else {
+    echo 'ok';
+}
+
+exit;
+
 echo 'GET: ';br();
 print_r($_GET);br();br();
 
