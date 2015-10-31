@@ -11,7 +11,20 @@ require('../../../autoload.php');
 
 
 use yxdj\network\Api;
+use yxdj\network\Cli;
 
+
+$args = Cli::parseArgs($argv, $argc);
+
+$uploadfile = Cli::ask('please input path for upload file:');
+//print_r($args);exit;
+
+
+if (!is_file($uploadfile)) {
+    exit("not find this file!");
+}
+
+$filename = basename($uploadfile);
 
 echo Api::getStream()->request([
     'method' => 'POST',
@@ -24,7 +37,7 @@ echo Api::getStream()->request([
     'cookie' => ['cookie1'=>'param2', 'cookie2'=>['a'=>'param2a','b'=>'param2b']],
     'file' => [
         //'file1' => ['name'=>'xxx.txt','value'=>file_get_contents('C:\Users\Administrator\Desktop\index.php')],
-        'file1' => ['name'=>'php5.chm','value'=>file_get_contents('C:\Users\Administrator\Desktop\php5.chm')],
+        'file1' => ['name'=>$filename,'value'=>file_get_contents($uploadfile)],
         //'file2[a]' => ['name'=>'aaa.xxx','value'=>'xxxxxx'],
         //'file2[b]' => ['name'=>'bbb.yyy','value'=>'yyyyyy'],
     ],
