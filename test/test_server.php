@@ -16,10 +16,34 @@ if (empty($_SERVER['HTTP_XUYUAN']) || $_SERVER['HTTP_XUYUAN'] != 'test') {
     exit('you do not have access!');
 }
 
+//-------------------------------------------
+//download
+
+if (!empty($_POST['type']) && $_POST['type'] == 'download') {
+    if (empty($_POST['download'])) {
+        exit('Error: (server)please input download file');
+    } else {
+        $downloadfile = $_POST['download'];
+    }
+    
+    if (is_file(__DIR__.'/file/'.$downloadfile)) {
+        echo file_get_contents(__DIR__.'/file/'.$downloadfile);
+    } else {
+        echo '######';
+    }
+    
+    
+    
+    
+    exit;
+    
+}
+
+
+
+
+//------------------------------------------
 $upload = new Upload();
-
-
-
 $file = $_FILES['file1'];
 $root = __DIR__;
 $cut = 'file';
