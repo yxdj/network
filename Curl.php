@@ -107,7 +107,7 @@ class Curl
     
 
     //get
-	public function get($url, $get = array(), $cookie = array())
+    public function get($url, $get = array(), $cookie = array())
     {
         $config = array(
             'method' => 'GET',
@@ -115,12 +115,12 @@ class Curl
             'get' => $get,
             'cookie' => $cookie,
         );
-        return $this->request($config);   	
-	}
-	
+        return $this->request($config);       
+    }
+    
     
     //post
-	public function post($url, $post = array(), $cookie = array(), $file=array())
+    public function post($url, $post = array(), $cookie = array(), $file=array())
     {
     
         $config = array(
@@ -131,7 +131,7 @@ class Curl
             'file' => $file,
         );
         return $this->request($config);
-	}
+    }
     
     
     
@@ -184,105 +184,8 @@ class Curl
         return $this->code;
     }
  
-    //发送请求
-    private function sendRequest()
-    {
-        //初始化
-        $ch = curl_init();       
-		curl_setopt($ch, CURLOPT_URL,$this->url);//设定请求的url
-		curl_setopt($ch, CURLOPT_HEADER, 1);//是否返回头部
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);//将结果返回
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);         
-        if ($this->jump > 0) {
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);//递归跳转location
-            curl_setopt($ch, CURLOPT_MAXREDIRS, $this->jump);//递归跳转location
-        }
-
-        
-        //发送请求头
-        if(count($this->row) > 0 ){
-            $header = array();
-            foreach($this->row as $rowKey => $rowVal)
-                $header[] = $rowKey.": ".$rowVal;
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        }
-        
-
-        //发送POST请求
-        if ($this->method == 'POST') {
-            $posts = $this->post;
-            $files = array();
-            //file
-            if (count($this->file) > 0) {
-                foreach ($this->file as $key => $val) {
-                    $files[$key] = $this->setFile($val);
-                }
-            }
-
-            //post
-            if (count($posts) > 0 || count($files) > 0) {
-                //$postData = http_build_query($posts);
-                $postData = $this->formatPost($posts, $files);
-                curl_setopt($ch, CURLOPT_POST, 1);//post提交方式
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);//提交的参数		
-            }
-        }
-
-        //发送cookie
-        $cookies = http_build_query($this->cookie);
-        $cookies = str_replace('&', '; ', $cookies);        
-        curl_setopt($ch, CURLOPT_COOKIE, $cookies);
-        
-        //执行请求
-        $return = curl_exec($ch);
-        
-        //请求存在错误
-        if(curl_errno($ch)) {
-            $this->code = 901;
-            $this->record('end', 'Curl error: ' . curl_error($ch));
-            curl_close($ch);
-            return false;     
-        
-        //请求返回失败
-        } elseif ($return === false) {
-            $this->code = 902;
-            $this->record('end', 'Curl error: curl_exec failed');
-            curl_close($ch);
-            return false;
-        
-        //请求成功,解析响应结果
-        } else {
-            $getinfo = curl_getinfo($ch);
-            $this->code = $getinfo['http_code'];
-            
-            $this->info = $getinfo;
-            
-            //请求信息
-            $request = '';
-            foreach ($getinfo as $key => $val) {
-                if (is_array($val)) {
-                    $val = str_replace(array("\r\n", "\r", "\n"), '', print_r($val, true));
-                }
-                $request .= $key . ': ' . $val . "\r\n";
-            }
-            $this->request = $request;
-            
-            //响应头
-            $this->response = trim(substr($return, 0, $getinfo['header_size']));
-            
-            //响应体
-            $this->content = substr($return, $getinfo['header_size']);
-            $this->record('end', 'Curl request success');
-            curl_close($ch);
-            return true;
-        }
-			    
-    }
-    
 
 
-    
     /**
      * 重置请求信息
      */
@@ -336,20 +239,113 @@ class Curl
         !isset($urls['port']) && $urls['port'] = '80';             //获取端口    
 
         //添加GET参数 
-        if (count($this->get)>0){
-            parse_str($urls['query'],$output);//解析字符串为数组
-            $output=array_merge($output,$this->get);//添加想要的参数
-            $urls['query']=trim(http_build_query($output));//重新生成查询字符串            
+        if (count($this->get) > 0) {
+            parse_str($urls['query'], $output);//解析字符串为数组
+            $output = array_merge($output, $this->get);//添加想要的参数
+            $urls['query'] = trim(http_build_query($output));//重新生成查询字符串            
         }
 
         $urls['paths'] = $urls['path'].(!empty($urls['query']) ? '?'.$urls['query'] : ''); //组拼完整路经                  
-        $this->urls=$urls;
+        $this->urls = $urls;
         $this->url = $urls['scheme'].'://'.$urls['host'].':'.$urls['port'].$urls['paths'];
         $this->record('parseUrl','ok('.$url.')');
         return true;
     }  
 
-    
+    //发送请求
+    private function sendRequest()
+    {
+        //初始化
+        $ch = curl_init();       
+        curl_setopt($ch, CURLOPT_URL,$this->url);//设定请求的url
+        curl_setopt($ch, CURLOPT_HEADER, 1);//是否返回头部
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);//将结果返回
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);         
+        if ($this->jump > 0) {
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);//递归跳转location
+            curl_setopt($ch, CURLOPT_MAXREDIRS, $this->jump);//递归跳转location
+        }
+
+        
+        //发送请求头
+        if(count($this->row) > 0 ){
+            $header = array();
+            foreach($this->row as $rowKey => $rowVal)
+                $header[] = $rowKey.": ".$rowVal;
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        }
+        
+
+        //发送POST请求
+        if ($this->method == 'POST') {
+            $posts = $this->post;
+            $files = array();
+            //file
+            if (count($this->file) > 0) {
+                foreach ($this->file as $key => $val) {
+                    $files[$key] = $this->setFile($val);
+                }
+            }
+
+            //post
+            if (count($posts) > 0 || count($files) > 0) {
+                //$postData = http_build_query($posts);
+                $postData = $this->formatPost($posts, $files);
+                curl_setopt($ch, CURLOPT_POST, 1);//post提交方式
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);//提交的参数        
+            }
+        }
+
+        //发送cookie
+        $cookies = http_build_query($this->cookie);
+        $cookies = str_replace('&', '; ', $cookies);        
+        curl_setopt($ch, CURLOPT_COOKIE, $cookies);
+        
+        //执行请求
+        $return = curl_exec($ch);
+        
+        //请求存在错误
+        if (curl_errno($ch)) {
+            $this->code = 901;
+            $this->record('end', 'Curl error: ' . curl_error($ch));
+            curl_close($ch);
+            return false;     
+        
+        //请求返回失败
+        } elseif ($return === false) {
+            $this->code = 902;
+            $this->record('end', 'Curl error: curl_exec failed');
+            curl_close($ch);
+            return false;
+        
+        //请求成功,解析响应结果
+        } else {
+            $getinfo = curl_getinfo($ch);
+            $this->code = $getinfo['http_code'];
+            
+            $this->info = $getinfo;
+            
+            //请求信息
+            $request = '';
+            foreach ($getinfo as $key => $val) {
+                if (is_array($val)) {
+                    $val = str_replace(array("\r\n", "\r", "\n"), '', print_r($val, true));
+                }
+                $request .= $key . ': ' . $val . "\r\n";
+            }
+            $this->request = $request;
+            
+            //响应头
+            $this->response = trim(substr($return, 0, $getinfo['header_size']));
+            
+            //响应体
+            $this->content = substr($return, $getinfo['header_size']);
+            $this->record('end', 'Curl request success');
+            curl_close($ch);
+            return true;
+        } 
+    }
 
     /**
      * 处理要发送的文件
@@ -565,110 +561,114 @@ class Curl
     /**
      * 从给定内容中取得所有a标签链接
      */
-	public function a($real = false) {
-		$match=array();
-		preg_match_all("'<\s*a\s.*?href\s*=\s*([\"\'])?(?(1) (.*?)\\1 | ([^\s\>]+))'isx", $this->content, $links); 
-		// catenate the non-empty matches from the conditional subpattern
-		while (list($key, $val) = each($links[2])) {
-			if (!empty($val))
-				$match[] = $val;
-		} while (list($key, $val) = each($links[3])) {
-			if (!empty($val))
-				$match[] = $val;
-		} 
-		$match=array_unique($match);//去除相同
+    public function a($real = false)
+    {
+        $match=array();
+        preg_match_all("'<\s*a\s.*?href\s*=\s*([\"\'])?(?(1) (.*?)\\1 | ([^\s\>]+))'isx", $this->content, $links); 
+        // catenate the non-empty matches from the conditional subpattern
+        while (list($key, $val) = each($links[2])) {
+            if (!empty($val))
+                $match[] = $val;
+        } while (list($key, $val) = each($links[3])) {
+            if (!empty($val))
+                $match[] = $val;
+        } 
+        $match=array_unique($match);//去除相同
         
         if ($real) {
             $match = self::realPath($match);
         }        
         
-		// return the links
-		return $match;
-	}
+        // return the links
+        return $match;
+    }
     
     /**
      * 从给定内容中取得所有img标签链接
      */
-	public function img($real = false) {
-		$match=array();
-		preg_match_all("'<\s*img\s.*?src\s*=\s*([\"\'])?(?(1) (.*?)\\1 | ([^\s\>]+))'isx", $this->content, $links); 
-		// catenate the non-empty matches from the conditional subpattern
-		while (list($key, $val) = each($links[2])) {
-			if (!empty($val))
-				$match[] = $val;
-		} 
-		while (list($key, $val) = each($links[3])) {
-			if (!empty($val))
-				$match[] = $val;
-		} 
-		$match=array_unique($match);//去除相同
+    public function img($real = false)
+    {
+        $match=array();
+        preg_match_all("'<\s*img\s.*?src\s*=\s*([\"\'])?(?(1) (.*?)\\1 | ([^\s\>]+))'isx", $this->content, $links); 
+        // catenate the non-empty matches from the conditional subpattern
+        while (list($key, $val) = each($links[2])) {
+            if (!empty($val))
+                $match[] = $val;
+        } 
+        while (list($key, $val) = each($links[3])) {
+            if (!empty($val))
+                $match[] = $val;
+        } 
+        $match=array_unique($match);//去除相同
         
         
         if ($real) {
             $match = $this->realPath($match);
         }
         
-		// return the links
-		return $match;
-	}
+        // return the links
+        return $match;
+    }
     
     
     /**
      * 拼接路径完整性
      */
-	private function realPath($url){
+    private function realPath($url)
+    {
 
         $scheme = $this->urls['scheme'].'://'; 
-		$host=$this->urls['host'];
-		$port = $this->urls['port']=='80'?'':':'.$urls['port'];		
-		
-        $path=$scheme.$host.$port;//绝对路径
-		$path2=$path.$this->urls['path'];
+        $host=$this->urls['host'];
+        $port = $this->urls['port']=='80'?'':':'.$urls['port'];        
         
-		$path2=substr($path2,-1)=='/'?$path2:dirname($path2);//以'/'结束直接以此为相对路径，否则上一级
-		$path2=substr($path2,-1)=='/'?$path2:$path2.'/';//最后以'/'结束
-		 
-		$url=$this->runPath($url,$path,$path2);	
-		return $url;
-	}
-	
-	/**
+        $path=$scheme.$host.$port;//绝对路径
+        $path2=$path.$this->urls['path'];
+        
+        $path2=substr($path2,-1)=='/'?$path2:dirname($path2);//以'/'结束直接以此为相对路径，否则上一级
+        $path2=substr($path2,-1)=='/'?$path2:$path2.'/';//最后以'/'结束
+         
+        $url=$this->runPath($url,$path,$path2);    
+        return $url;
+    }
+    
+    /**
      * 拼接路径完整性2,递规
      */
-	private function runPath($str1,$path,$path2){
-		if(is_array($str1)){
-			$urls=array();
-			foreach($str1 as $key => $value){
-				$urls[$key]=self::runPath($value,$path,$path2);
-			}
-			return $urls;
-		}
+    private function runPath($str1,$path,$path2)
+    {
+        if(is_array($str1)){
+            $urls=array();
+            foreach($str1 as $key => $value){
+                $urls[$key]=self::runPath($value,$path,$path2);
+            }
+            return $urls;
+        }
 
-		if(is_string($str1)){
-			if(preg_match('/^[a-z]{1,10}:\/\//i',dirname($str1))){
-				return $str1;
-			}
-			
-			if(substr($str1,0,1)=='/'){
-				return $path.$str1;
-			}
-			
-			if(substr($str1,0,1)!='.'){
-				return $path2.$str1;
-			}
-			
-			if(substr($str1,0,2)=='./'){
-				return $path2.substr($str1,2);
-			}  
-			
-			if(substr($str1,0,3)=='../'){
-				while(substr($str1,0,3)=='../'){
-					$str1=substr($str1,3);
-					$path2=dirname($path2);			
-				}
-				return $path2.'/'.$str1;
-			}
-			return $str1;
-		}
-	}       
+        if(is_string($str1)){
+            if(preg_match('/^[a-z]{1,10}:\/\//i',dirname($str1))){
+                return $str1;
+            }
+            
+            if(substr($str1,0,1)=='/'){
+                return $path.$str1;
+            }
+            
+            if(substr($str1,0,1)!='.'){
+                return $path2.$str1;
+            }
+            
+            if(substr($str1,0,2)=='./'){
+                return $path2.substr($str1,2);
+            }  
+            
+            if(substr($str1,0,3)=='../'){
+                while(substr($str1,0,3)=='../'){
+                    $str1=substr($str1,3);
+                    $path2=dirname($path2);            
+                }
+                return $path2.'/'.$str1;
+            }
+            return $str1;
+        }
+    }       
 }
